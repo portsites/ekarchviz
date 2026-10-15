@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EKARCHVIZ — Spatial 360° Experience</title>
+
+<!-- Tipografia Editorial & Técnica Internacional -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #0b0c0e;
+    --stage-bg: #141517;
+    --ivory: #f3ede2;
+    --ivory-dim: rgba(243, 237, 226, 0.68);
+    --ivory-muted: rgba(243, 237, 226, 0.42);
+    --champagne: #e0ccb1;
+    --glass: rgba(26, 26, 28, 0.56);
+    --glass-dark: rgba(14, 15, 18, 0.84);
+    --border: rgba(243, 237, 226, 0.22);
+    --border-strong: rgba(243, 237, 226, 0.48);
+    --danger: #ff6b6b;
+    --radius-stage: 26px;
+    --radius-card: 16px;
+    --radius-pill: 999px;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-serif: 'Instrument Serif', Georgia, serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    min-height: 100%;
+    background-color: var(--bg);
+    color: var(--ivory);
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    scroll-behavior: smooth;
+  }
+
+  button, input, select, a { font: inherit; outline: none; color: inherit; text-decoration: none; }
+  button { cursor: pointer; background: none; border: none; }
+
+  .app-shell {
+    max-width: 1520px;
+    margin: 0 auto;
+    padding: 18px 22px 80px;
+  }
+
+  /* =========================================================
+     PALCO HERO "EKARCH" (Design Editorial Internacional)
+     ========================================================= */
+  .terra-stage {
+    position: relative;
+    min-height: 88vh;
+    border-radius: var(--radius-stage);
+    overflow: hidden;
+    border: 1px solid rgba(243, 237, 226, 0.14);
+    background: #1a1b1e;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 30px 44px 38px;
+    box-shadow: 0 35px 90px rgba(0, 0, 0, 0.65);
+    margin-bottom: 56px;
+    isolation: isolate;
+  }
+
+  .terra-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background-image: url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=85');
+    background-size: cover;
+    background-position: center 55%;
+    filter: brightness(0.68) contrast(1.08) saturate(0.82);
+    transition: background-image 0.8s ease, transform 1.2s ease;
+  }
+  .terra-stage:hover .terra-backdrop {
+    transform: scale(1.015);
+  }
+
+  .terra-Atmosphere {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(circle at 55% 18%, rgba(255,255,255,0.12) 0%, transparent 48%),
+      linear-gradient(180deg, rgba(22, 24, 27, 0.55) 0%, rgba(15, 16, 18, 0.25) 45%, rgba(10, 10, 12, 0.88) 100%);
+    pointer-events: none;
+  }
+
+  /* BARRA DE NAVEGAÇÃO SUPERIOR EM PÍLULAS */
+  .top-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    position: relative;
+    z-index: 10;
+  }
+
+  .pill-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .nav-pill {
+    padding: 11px 22px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--ivory);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .nav-pill:hover {
+    border-color: var(--ivory);
+    background: rgba(243, 237, 226, 0.12);
+    transform: translateY(-1px);
+  }
+  .nav-pill.active {
+    background: var(--ivory);
+    color: #0b0c0e;
+    border-color: var(--ivory);
+    font-weight: 700;
+  }
+
+  .brand-center {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .dot-matrix {
+    display: grid;
+    grid-template-columns: repeat(3, 5px);
+    gap: 3.5px;
+  }
+  .dot-matrix span {
+    width: 5px; height: 5px;
+    background: var(--ivory);
+    border-radius: 1px;
+    display: block;
+  }
+  .dot-matrix span.dim { opacity: 0.25; }
+  .brand-text strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    line-height: 1.05;
+  }
+  .brand-text span {
+    display: block;
+    font-size: 12px;
+    color: var(--ivory-dim);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+  }
+
+  .nav-cta {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+  }
+  .nav-meta {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--ivory);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.85;
+  }
+  .cta-arrow-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ivory);
+    padding: 8px 0;
+    transition: 0.25s;
+  }
+  .cta-arrow-btn svg {
+    width: 30px; height: 14px;
+    stroke: var(--ivory);
+    transition: transform 0.3s ease;
+  }
+  .cta-arrow-btn:hover svg { transform: translateX(6px); }
+
+  /* CENTRO MONUMENTAL E META-INFORMAÇÕES */
+  .hero-center-area {
+    position: relative;
+    margin: auto 0;
+    padding: 36px 0 16px;
+    z-index: 5;
+  }
+
+  .hero-top-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    align-items: end;
+    margin-bottom: -14px;
+    padding: 0 4px;
+  }
+  .meta-studio {
+    font-size: 12px;
+    color: var(--ivory-dim);
+  }
+  .meta-year {
+    font-size: 12px;
+    color: var(--ivory-dim);
+    line-height: 1.4;
+    padding-left: 18%;
+  }
+  .meta-year strong {
+    display: block;
+    color: var(--ivory);
+    font-weight: 500;
+  }
+  .meta-pillars {
+    list-style: none;
+    text-align: right;
+    font-size: 11.5px;
+    color: var(--ivory-dim);
+    line-height: 1.75;
+  }
+
+  .monumental-lockup {
+    position: relative;
+    user-select: none;
+    line-height: 0.82;
+    margin: 12px 0 10px;
+    pointer-events: none;
+  }
+  .monumental-sans {
+    font-size: clamp(56px, 13.5vw, 205px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+    color: var(--ivory);
+    display: block;
+    text-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  }
+  .monumental-serif {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(50px, 9.8vw, 148px);
+    color: #ffffff;
+    position: absolute;
+    right: 2%;
+    bottom: -34px;
+    text-shadow: 0 18px 45px rgba(0, 0, 0, 0.85);
+    letter-spacing: -0.01em;
+  }
+
+  /* =========================================================
+     PINOS ARQUITETÔNICOS E CARD DE ESPECIFICAÇÕES NA CAPA
+     ========================================================= */
+  .stage-pins-layer {
+    position: relative;
+    min-height: 230px;
+    z-index: 8;
+    display: grid;
+    grid-template-columns: 390px 1fr;
+    align-items: end;
+    gap: 32px;
+  }
+
+  .spec-glass-wrapper {
+    position: relative;
+    padding-top: 42px;
+  }
+  .arch-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--ivory);
+    box-shadow: 0 0 0 5px rgba(243, 237, 226, 0.25), 0 0 16px rgba(255,255,255,0.6);
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.25s ease, background 0.25s ease;
+  }
+  .arch-dot::after {
+    content: '';
+    position: absolute;
+    inset: -7px;
+    border-radius: 50%;
+    border: 1px solid rgba(243, 237, 226, 0.55);
+    animation: pulseRing 2.2s infinite;
+  }
+  @keyframes pulseRing {
+    0% { transform: scale(0.75); opacity: 1; }
+    100% { transform: scale(1.85); opacity: 0; }
+  }
+
+  .spec-pin-anchor {
+    position: absolute;
+    top: 0; left: 26px;
+  }
+  .spec-pin-anchor::before {
+    content: '';
+    position: absolute;
+    top: 14px; left: 6.5px;
+    width: 1px; height: 28px;
+    background: var(--border-strong);
+  }
+
+  .spec-glass-card {
+    background: rgba(34, 33, 32, 0.52);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--border-strong);
+    border-radius: 16px;
+    padding: 18px 22px;
+    font-size: 12px;
+    line-height: 1.75;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  }
+  .spec-line {
+    display: flex;
+    gap: 6px;
+    color: var(--ivory-dim);
+  }
+  .spec-line strong {
+    color: var(--ivory);
+    font-weight: 600;
+  }
+
+  .hero-Interactive-dots {
+    position: relative;
+    height: 100%;
+    min-height: 180px;
+  }
+  .stage-preview-pin {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    z-index: 12;
+  }
+  .stage-preview-pin:hover .arch-dot {
+    transform: scale(1.25);
+    background: var(--champagne);
+  }
+
+  /* RODAPÉ DO PALCO HERO (Instagram @erickrender + 2 Colunas Editoriais) */
+  .hero-bottom-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 32px;
+    margin-top: 28px;
+    position: relative;
+    z-index: 10;
+  }
+  .circle-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .insta-link-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 44px;
+    padding: 0 18px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--ivory);
+    transition: all 0.25s ease;
+  }
+  .insta-link-pill svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+  }
+  .insta-link-pill:hover {
+    border-color: var(--ivory);
+    background: var(--ivory);
+    color: #0b0c0e;
+    transform: translateY(-2px);
+  }
+
+  .circle-icon-btn {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(10px);
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ivory);
+    transition: all 0.25s ease;
+  }
+  .circle-icon-btn:hover {
+    border-color: var(--ivory);
+    background: var(--ivory);
+    color: #0b0c0e;
+    transform: translateY(-2px);
+  }
+
+  .hero-editorial-cols {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 28px;
+    max-width: 650px;
+    font-size: 12px;
+    line-height: 1.65;
+    color: var(--ivory-dim);
+  }
+
+  /* =========================================================
+     CATÁLOGO DE PROJETOS (ACERVO 360°)
+     ========================================================= */
+  .catalog-section {
+    padding: 0 12px;
+  }
+  .section-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 28px;
+    border-bottom: 1px solid rgba(243, 237, 226, 0.1);
+    padding-bottom: 16px;
+  }
+  .section-bar h2 {
+    font-size: 26px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+  .section-bar h2 em {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 32px;
+    color: var(--champagne);
+    margin-left: 6px;
+  }
+  .section-bar p {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--ivory-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 24px;
+  }
+
+  .arch-card {
+    position: relative;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--border);
+    background: rgba(20, 21, 25, 0.72);
+    backdrop-filter: blur(14px);
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+  }
+  .arch-card:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-5px);
+    box-shadow: 0 26px 60px rgba(0, 0, 0, 0.6);
+  }
+
+  .arch-thumb {
+    position: relative;
+    height: 240px;
+    overflow: hidden;
+    background: #070709;
+    cursor: pointer;
+  }
+  .arch-thumb img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease;
+    filter: brightness(0.92);
+  }
+  .arch-card:hover .arch-thumb img {
+    transform: scale(1.06);
+    filter: brightness(1);
+  }
+  .arch-thumb::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(11,12,14,0.9) 0%, transparent 55%);
+  }
+
+  .card-index {
+    position: absolute;
+    top: 14px; left: 14px;
+    z-index: 2;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    padding: 5px 12px;
+    border-radius: var(--radius-pill);
+    background: rgba(11, 12, 14, 0.68);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(8px);
+  }
+
+  .card-pin-badge {
+    position: absolute;
+    top: 14px; right: 14px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 12px;
+    border-radius: var(--radius-pill);
+    background: rgba(243, 237, 226, 0.14);
+    border: 1px solid var(--border-strong);
+    backdrop-filter: blur(10px);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .card-pin-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--ivory);
+    box-shadow: 0 0 8px #fff;
+  }
+
+  .card-scene-dots {
+    position: absolute;
+    bottom: 14px; right: 16px;
+    z-index: 4;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .arch-body {
+    padding: 20px 22px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .arch-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .arch-title {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ivory);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .arch-date {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ivory-dim);
+    flex-shrink: 0;
+  }
+  .arch-specs {
+    font-size: 11.5px;
+    color: var(--ivory-dim);
+    border-left: 1px solid var(--border-strong);
+    padding-left: 12px;
+    line-height: 1.6;
+  }
+  .arch-actions {
+    display: flex;
+    gap: 8px;
+    padding-top: 4px;
+  }
+  .pill-btn {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: 0.25s;
+    text-align: center;
+  }
+  .pill-btn:hover {
+    border-color: var(--ivory);
+    background: rgba(243, 237, 226, 0.1);
+  }
+  .pill-btn.solid {
+    background: var(--ivory);
+    color: #0b0c0e;
+    border-color: var(--ivory);
+  }
+  .pill-btn.solid:hover {
+    background: var(--champagne);
+    border-color: var(--champagne);
+  }
+  .pill-btn.del {
+    flex: 0 0 40px;
+    color: var(--ivory-dim);
+  }
+  .pill-btn.del:hover {
+    color: var(--danger);
+    border-color: rgba(255, 107, 107, 0.45);
+    background: rgba(255, 107, 107, 0.1);
+  }
+
+  .empty-state {
+    grid-column: 1 / -1;
+    padding: 68px 24px;
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-card);
+    text-align: center;
+    background: rgba(18, 19, 23, 0.45);
+  }
+  .empty-state h3 {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 34px;
+    color: var(--ivory);
+    margin-bottom: 8px;
+  }
+  .empty-state p {
+    font-size: 13px;
+    color: var(--ivory-dim);
+    margin-bottom: 22px;
+  }
+
+  /* =========================================================
+     MODAIS DE SISTEMA
+     ========================================================= */
+  .modal {
+    position: fixed;
+    inset: 0;
+    z-index: 130;
+    background: rgba(5, 5, 7, 0.78);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal.open { display: flex; }
+
+  .modal-card {
+    width: min(640px, 100%);
+    max-height: 90vh;
+    background: rgba(18, 19, 23, 0.94);
+    border: 1px solid var(--border-strong);
+    border-radius: 22px;
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.78);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .modal-head {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-head strong {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .close-btn {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    color: var(--ivory-dim);
+    transition: 0.2s;
+  }
+  .close-btn:hover { border-color: var(--ivory); color: var(--ivory); }
+
+  .modal-body { padding: 24px; overflow-y: auto; }
+  .field { display: grid; gap: 8px; margin-bottom: 18px; }
+  .field label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ivory-dim);
+  }
+  .field input, .field select {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 13px 15px;
+    color: var(--ivory);
+    font-size: 13px;
+  }
+  .field input:focus, .field select:focus { border-color: var(--ivory); }
+  .field select option { background: #141518; color: var(--ivory); }
+
+  .drop-zone {
+    border: 1px dashed var(--border-strong);
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 16px;
+    padding: 30px 18px;
+    text-align: center;
+    transition: 0.25s;
+  }
+  .drop-zone.drag { border-color: var(--ivory); background: rgba(243, 237, 226, 0.06); }
+  .drop-zone strong { display: block; font-size: 14px; margin-bottom: 6px; }
+  .drop-zone p { font-size: 12px; color: var(--ivory-dim); margin-bottom: 16px; }
+  .drop-zone input { display: none; }
+
+  .file-list { margin-top: 16px; display: grid; gap: 10px; }
+  .file-item {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 9px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+  .file-item img { width: 54px; height: 40px; border-radius: 7px; object-fit: cover; }
+  .file-item input {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--border);
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+  }
+
+  .modal-foot {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  /* =========================================================
+     VISUALIZADOR 360° FULLSCREEN
+     ========================================================= */
+  .viewer {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    display: none;
+    z-index: 100;
+  }
+  .viewer.open { display: block; }
+  #viewerCanvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; }
+  #viewerCanvas:active { cursor: grabbing; }
+
+  #fadeOverlay {
+    position: absolute;
+    inset: 0;
+    background: #08090b;
+    z-index: 102;
+    transition: opacity 0.42s ease;
+    pointer-events: none;
+    opacity: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .spinner {
+    width: 44px; height: 44px;
+    border: 2px solid rgba(243, 237, 226, 0.14);
+    border-top-color: var(--ivory);
+    border-radius: 50%;
+    animation: spin 0.85s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Topo do Visualizador */
+  .viewer-header {
+    position: absolute;
+    top: 24px; left: 28px; right: 28px;
+    z-index: 106;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: none;
+  }
+  .viewer-header > * { pointer-events: auto; }
+
+  .viewer-brand-pill {
+    background: var(--glass);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    padding: 10px 22px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .viewer-project-info strong {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .viewer-room-tag {
+    padding-left: 16px;
+    border-left: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .viewer-room-tag span {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ivory-dim);
+  }
+  .viewer-room-tag em {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 22px;
+    color: var(--champagne);
+    line-height: 1;
+  }
+
+  .viewer-top-controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  /* HOTSPOTS 3D NO ESPAÇO 360° (SEM PRÉ-VISUALIZAÇÃO) */
+  #hotspotsContainer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 104;
+    overflow: hidden;
+  }
+  .hotspot-point {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 10;
+  }
+  .hotspot-point:hover {
+    z-index: 50;
+  }
+  .hotspot-dot {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--ivory);
+    box-shadow: 0 0 0 6px rgba(243, 237, 226, 0.25), 0 4px 18px rgba(0, 0, 0, 0.85);
+    position: relative;
+    transition: transform 0.25s ease, background 0.25s ease;
+  }
+  .hotspot-dot::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 1px solid rgba(243, 237, 226, 0.7);
+    animation: pulseRing 2s infinite;
+  }
+  .hotspot-point:hover .hotspot-dot {
+    transform: scale(1.3);
+    background: var(--champagne);
+  }
+  .hotspot-caption {
+    margin-top: 10px;
+    padding: 4px 11px;
+    border-radius: var(--radius-pill);
+    background: rgba(12, 13, 16, 0.72);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(8px);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--ivory);
+    white-space: nowrap;
+    transition: opacity 0.2s ease;
+  }
+
+  /* DOCK INFERIOR DE BOLINHAS DE NAVEGAÇÃO (SEM PRÉ-VISUALIZAÇÃO) */
+  .viewer-nav {
+    position: absolute;
+    bottom: 28px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 106;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 22px;
+    border-radius: var(--radius-pill);
+    background: var(--glass);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--border);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
+  }
+
+  /* Assinatura @erickrender no Canto Inferior Esquerdo do Viewer */
+  .viewer-insta-corner {
+    position: absolute;
+    bottom: 28px;
+    left: 28px;
+    z-index: 106;
+  }
+
+  .nav-dot-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  .nav-dot-item:hover {
+    background: rgba(243, 237, 226, 0.1);
+  }
+  .nav-dot-circle {
+    width: 11px; height: 11px;
+    border-radius: 50%;
+    background: rgba(243, 237, 226, 0.35);
+    border: 1px solid var(--border-strong);
+    transition: all 0.25s ease;
+  }
+  .nav-dot-item:hover .nav-dot-circle {
+    background: var(--champagne);
+    transform: scale(1.25);
+  }
+  .nav-dot-item.active {
+    background: rgba(243, 237, 226, 0.14);
+  }
+  .nav-dot-item.active .nav-dot-circle {
+    background: var(--ivory);
+    box-shadow: 0 0 0 4px rgba(243, 237, 226, 0.22);
+    transform: scale(1.15);
+  }
+  .nav-dot-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ivory-dim);
+    white-space: nowrap;
+    transition: color 0.25s ease;
+  }
+  .nav-dot-item.active .nav-dot-label,
+  .nav-dot-item:hover .nav-dot-label {
+    color: var(--ivory);
+  }
+
+  /* Toast Notification */
+  .toast {
+    position: fixed;
+    left: 50%; bottom: 32px;
+    transform: translate(-50%, 20px);
+    opacity: 0;
+    background: var(--ivory);
+    color: #0b0c0e;
+    padding: 12px 22px;
+    border-radius: var(--radius-pill);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 200;
+    pointer-events: none;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (max-width: 960px) {
+    .terra-stage { padding: 22px 20px 28px; min-height: auto; }
+    .top-nav { flex-direction: column; align-items: flex-start; gap: 14px; }
+    .hero-top-meta { grid-template-columns: 1fr; gap: 8px; margin-bottom: 4px; }
+    .meta-year { padding-left: 0; }
+    .meta-pillars { text-align: left; }
+    .monumental-serif { position: relative; right: auto; bottom: auto; display: block; margin-top: -12px; }
+    .stage-pins-layer { grid-template-columns: 1fr; }
+    .hero-Interactive-dots { display: none; }
+    .hero-bottom-bar { flex-direction: column; align-items: flex-start; }
+    .hero-editorial-cols { grid-template-columns: 1fr; }
+    .viewer-header { flex-direction: column; align-items: stretch; gap: 10px; top: 16px; left: 16px; right: 16px; }
+    .viewer-nav { max-width: 94vw; overflow-x: auto; padding: 10px 14px; bottom: 82px; }
+    .viewer-insta-corner { bottom: 20px; left: 50%; transform: translateX(-50%); }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell" id="mainApp">
+
+  <!-- PALCO PRINCIPAL ESTILO "EKARCH" -->
+  <section class="terra-stage">
+    <div class="terra-backdrop" id="heroBackdrop"></div>
+    <div class="terra-Atmosphere"></div>
+
+    <!-- Navegação Superior em Pílulas -->
+    <header class="top-nav">
+      <div class="pill-group">
+        <button class="nav-pill active" onclick="window.scrollTo({top:0,behavior:'smooth'})">Principal</button>
+        <button class="nav-pill" onclick="document.getElementById('acervoSection').scrollIntoView({behavior:'smooth'})">Projetos</button>
+        <button class="nav-pill" onclick="openAdd()">Novo Tour</button>
+        <button class="nav-pill" onclick="showAbout()">Especificações</button>
+      </div>
+
+      <div class="brand-center">
+        <div class="dot-matrix">
+          <span></span><span></span><span class="dim"></span>
+          <span></span><span></span><span></span>
+          <span class="dim"></span><span></span><span></span>
+        </div>
+        <div class="brand-text">
+          <strong>EKARCHVIZ</strong>
+          <span>spatial architects</span>
+        </div>
+      </div>
+
+      <div class="nav-cta">
+        <span class="nav-meta" id="topCounter">00 PROJETOS</span>
+        <button class="cta-arrow-btn" onclick="openAdd()">
+          <span>PUBLICAR PROJETO</span>
+          <svg viewBox="0 0 32 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 8H30M30 8L23 1M30 8L23 15" stroke-width="1.5"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Tipografia Monumental Sobreposta à Arquitetura -->
+    <div class="hero-center-area">
+      <div class="hero-top-meta">
+        <div class="meta-studio">EKARCHVIZ — Spatial Studio</div>
+        <div class="meta-year">
+          <strong>2026</strong>
+          Arquitetura com sentido espacial
+        </div>
+        <ul class="meta-pillars">
+          <li>— Compacidade</li>
+          <li>— Imersão 360°</li>
+          <li>— Minimalismo</li>
+        </ul>
+      </div>
+
+      <div class="monumental-lockup">
+        <span class="monumental-sans">EKARCH</span>
+        <span class="monumental-serif">spatial</span>
+      </div>
+    </div>
+
+    <!-- Camada de Pinos Arquitetônicos e Card de Vidro Conectado -->
+    <div class="stage-pins-layer">
+      <div class="spec-glass-wrapper">
+        <div class="spec-pin-anchor">
+          <div class="arch-dot"></div>
+        </div>
+        <div class="spec-glass-card">
+          <div class="spec-line"><span>Estúdio:</span><strong>EKARCHVIZ</strong></div>
+          <div class="spec-line"><span>Direção Criativa:</span><strong>Visualização Espacial 360°</strong></div>
+          <div class="spec-line"><span>Tours Ativos:</span><strong id="count">0</strong></div>
+          <div class="spec-line"><span>Projeto em Destaque:</span><strong id="last">Acervo Digital</strong></div>
+          <div class="spec-line"><span>Ano:</span><strong>2026</strong></div>
+          <div class="spec-line"><span>Categoria:</span><strong>Residencial & Interiores</strong></div>
+        </div>
+      </div>
+
+      <!-- Bolinhas de Navegação no Palco -->
+      <div class="hero-Interactive-dots" id="heroInteractiveDots"></div>
+    </div>
+
+    <!-- Barra Inferior do Palco: @erickrender no Canto Inferior Esquerdo + 2 Colunas Editoriais -->
+    <div class="hero-bottom-bar">
+      <div class="circle-actions">
+        <a href="https://www.instagram.com/erickrender/" target="_blank" rel="noopener noreferrer" class="insta-link-pill" title="Acessar Instagram @erickrender">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
+          <span>@erickrender</span>
+        </a>
+        <button class="circle-icon-btn" onclick="openAdd()" title="Novo Projeto 360°">＋</button>
+        <button class="circle-icon-btn" onclick="document.getElementById('acervoSection').scrollIntoView({behavior:'smooth'})" title="Ver Catálogo">360</button>
+        <button class="circle-icon-btn" onclick="showAbout()" title="Sobre o Sistema">ⓘ</button>
+      </div>
+
+      <div class="hero-editorial-cols">
+        <p>
+          Minimalismo contemporâneo e presença espacial: cada projeto é renderizado em projeção equiretangular 360°, permitindo explorar a volumetria, iluminação natural e materiais em qualquer dispositivo.
+        </p>
+        <p>
+          Espaço fluido com navegação interativa por bolinhas inteligentes: clique sobre os pontos de conexão no espaço tridimensional para transitar entre os ambientes do projeto.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATÁLOGO DE PROJETOS -->
+  <section class="catalog-section" id="acervoSection">
+    <div class="section-bar">
+      <h2>Acervo <em>selecionado</em></h2>
+      <p>CLIQUE EM UM PROJETO PARA EXPLORAR OU ADICIONAR CONEXÕES 3D</p>
+    </div>
+    <div id="projects" class="projects-grid"></div>
+  </section>
+
+</div>
+
+<!-- MODAL: CRIAR NOVO TOUR -->
+<div id="modal" class="modal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <strong>Publicar Novo Tour 360°</strong>
+      <button class="close-btn" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Nome do Projeto / Residência</label>
+        <input id="projectName" type="text" maxlength="80" placeholder="Ex.: Residência EKARCH — Pavimento Térreo" />
+      </div>
+      <div id="drop" class="drop-zone">
+        <strong>Arraste ou selecione os renders 360°</strong>
+        <p>Suporta múltiplos arquivos JPG, PNG ou WebP (Proporção 2:1 • Até 32MB por foto)</p>
+        <label class="nav-pill active" for="fileInput" style="display:inline-block; cursor:pointer;">Selecionar Imagens</label>
+        <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" multiple />
+      </div>
+      <div id="fileList" class="file-list"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="nav-pill" onclick="closeModal()">Cancelar</button>
+      <button id="saveBtn" class="nav-pill active" onclick="saveProject()">Publicar na Nuvem ⟶</button>
+    </div>
+  </div>
+</div>
+
+<!-- VISUALIZADOR 360° FULLSCREEN -->
+<div id="viewer" class="viewer">
+  <div id="fadeOverlay">
+    <div class="spinner" id="fadeSpinner"></div>
+  </div>
+
+  <canvas id="viewerCanvas"></canvas>
+  <div id="hotspotsContainer"></div>
+
+  <!-- Cabeçalho Flutuante do Viewer -->
+  <div class="viewer-header">
+    <div class="viewer-brand-pill">
+      <div class="dot-matrix">
+        <span></span><span></span><span class="dim"></span>
+        <span></span><span></span><span></span>
+        <span class="dim"></span><span></span><span></span>
+      </div>
+      <div class="viewer-project-info">
+        <strong id="viewerName">Projeto</strong>
+      </div>
+      <div class="viewer-room-tag">
+        <span id="viewerIndex">01</span>
+        <em id="viewerEnv">Ambiente</em>
+      </div>
+    </div>
+
+    <div class="viewer-top-controls">
+      <button class="nav-pill active" id="btnAddHotspot" onclick="abrirModalHotspot()" title="Aponte a câmera para uma passagem e clique">
+        + Fixar Bolinha 3D Aqui
+      </button>
+      <button class="nav-pill" id="btnAutoRotate" onclick="toggleAutoRotate()">
+        Giro: <span id="rotateStatus">AUTO</span>
+      </button>
+      <button class="nav-pill" onclick="toggleFullscreen()">Tela Cheia</button>
+      <button class="nav-pill" id="btnCloseViewer" onclick="closeViewer()">Fechar ✕</button>
+    </div>
+  </div>
+
+  <!-- Link @erickrender no Canto Inferior Esquerdo do Visualizador -->
+  <div class="viewer-insta-corner">
+    <a href="https://www.instagram.com/erickrender/" target="_blank" rel="noopener noreferrer" class="insta-link-pill" title="Instagram @erickrender">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+      </svg>
+      <span>@erickrender</span>
+    </a>
+  </div>
+
+  <!-- Barra Inferior de Bolinhas de Navegação -->
+  <div class="viewer-nav" id="viewerNav"></div>
+</div>
+
+<!-- MODAL: CRIAR HOTSPOT (TELETRANSPORTE) -->
+<div id="modalHotspot" class="modal" style="z-index: 150;">
+  <div class="modal-card" style="width: min(440px, 100%);">
+    <div class="modal-head">
+      <strong>Conectar Passagem 3D</strong>
+      <button class="close-btn" onclick="fecharModalHotspot()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Ambiente de Destino (Centro da Tela Atual)</label>
+        <select id="hotspotDestino"></select>
+      </div>
+      <p style="font-size:12px; color:var(--ivory-dim); line-height:1.6;">
+        Uma bolinha de navegação interativa será fixada na direção exata para onde a câmera está apontando.
+      </p>
+    </div>
+    <div class="modal-foot">
+      <button class="nav-pill" onclick="fecharModalHotspot()">Cancelar</button>
+      <button class="nav-pill active" onclick="salvarHotspot()">Fixar Bolinha 3D</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ESPECIFICAÇÕES DO SISTEMA -->
+<div id="about" class="modal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <strong>Especificações da Plataforma</strong>
+      <button class="close-btn" onclick="document.getElementById('about').classList.remove('open')">×</button>
+    </div>
+    <div class="modal-body" style="color:var(--ivory-dim); font-size:13px; line-height:1.8;">
+      <p style="margin-bottom:14px; color:var(--ivory);">
+        <strong>EKARCHVIZ — Spatial 360° Engine</strong> combina design editorial internacional com navegação tridimensional leve e responsiva.
+      </p>
+      <p>
+        • <strong>Bolinhas de Navegação 3D:</strong> Aponte a câmera para qualquer passagem no tour e clique em <b>+ Fixar Bolinha 3D Aqui</b> para conectar os ambientes.<br>
+        • <strong>Modo Cliente Inteligente:</strong> Ao clicar em <b>Partilhar</b>, o link gerado abre diretamente o tour em tela cheia no celular ou computador do cliente.
+      </p>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<!-- Motor Gráfico Three.js -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script>
+// ==========================================
+// CHAVE DA API DO IMGBB
+const IMGBB_API_KEY = "e0eda73472324c4a7cff8c0841956d57";
+// ==========================================
+
+const DB_NAME = "cy360db4";
+const STORE = "projects";
+let db;
+let projectsCache = [];
+let selectedFiles = [];
+let viewerState = null;
+let isClientMode = false;
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(window.__toast);
+  window.__toast = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(STORE, { keyPath: "id" });
+    req.onsuccess = () => { db = req.result; resolve(db); };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function getAll() {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readonly");
+    const s = tx.objectStore(STORE);
+    const r = s.getAll();
+    r.onsuccess = () => resolve(r.result.sort((a, b) => b.createdAt - a.createdAt));
+    r.onerror = () => reject(r.error);
+  });
+}
+
+function put(item) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readwrite");
+    const r = tx.objectStore(STORE).put(item);
+    r.onsuccess = () => resolve();
+    r.onerror = () => reject(r.error);
+  });
+}
+
+function del(id) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readwrite");
+    const r = tx.objectStore(STORE).delete(id);
+    r.onsuccess = () => resolve();
+    r.onerror = () => reject(r.error);
+  });
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m]));
+}
+
+// Renderiza os Pinos Interativos na Capa Hero (Sem Pré-visualização)
+function renderHeroStagePins() {
+  const container = document.getElementById('heroInteractiveDots');
+  const backdrop = document.getElementById('heroBackdrop');
+
+  if (projectsCache.length > 0) {
+    const latest = projectsCache[0];
+    const coverUrl = latest.images[0].url || latest.images[0].thumb;
+    backdrop.style.backgroundImage = `url('${coverUrl}')`;
+
+    const positions = [
+      { top: '18%', left: '28%' },
+      { top: '62%', left: '54%' },
+      { top: '36%', left: '78%' }
+    ];
+
+    container.innerHTML = latest.images.slice(0, 3).map((img, i) => {
+      const pos = positions[i % positions.length];
+      return `
+        <div class="stage-preview-pin" style="top:${pos.top}; left:${pos.left};" onclick="openViewer('${latest.id}', ${i})" title="${escapeHtml(img.label)}">
+          <div class="arch-dot"></div>
+        </div>
+      `;
+    }).join('');
+  } else {
+    backdrop.style.backgroundImage = `url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=85')`;
+    container.innerHTML = `
+      <div class="stage-preview-pin" style="top: 22%; left: 32%;" onclick="openAdd()">
+        <div class="arch-dot"></div>
+      </div>
+      <div class="stage-preview-pin" style="top: 64%; left: 60%;" onclick="openAdd()">
+        <div class="arch-dot"></div>
+      </div>
+    `;
+  }
+}
+
+async function renderProjects() {
+  projectsCache = await getAll();
+  const total = projectsCache.length;
+  document.getElementById('count').textContent = total;
+  document.getElementById('topCounter').textContent = String(total).padStart(2, '0') + (total === 1 ? ' PROJETO' : ' PROJETOS');
+  document.getElementById('last').textContent = projectsCache[0] ? projectsCache[0].name : "Acervo Digital";
+
+  renderHeroStagePins();
+
+  const wrap = document.getElementById('projects');
+  if (!total) {
+    wrap.innerHTML = `
+      <div class="empty-state">
+        <h3>Acervo em branco</h3>
+        <p>Publique seu primeiro render equiretangular 360° para inaugurar o catálogo interativo.</p>
+        <button class="nav-pill active" onclick="openAdd()">+ Publicar Primeiro Projeto</button>
+      </div>`;
+    return;
+  }
+
+  wrap.innerHTML = projectsCache.map((p, idx) => {
+    const num = String(idx + 1).padStart(2, '0');
+    const totalHotspots = p.images.reduce((acc, img) => acc + (img.hotspots ? img.hotspots.length : 0), 0);
+
+    const dotsHtml = p.images.slice(0, 5).map((img, sceneIdx) => {
+      return `
+        <div class="stage-preview-pin" style="position:relative;" onclick="event.stopPropagation(); openViewer('${p.id}', ${sceneIdx})" title="${escapeHtml(img.label)}">
+          <div class="arch-dot" style="width:11px; height:11px;"></div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+    <article class="arch-card">
+      <div class="arch-thumb" onclick="openViewer('${p.id}', 0)">
+        <span class="card-index">EK // ${num}</span>
+        <span class="card-pin-badge">${p.images.length} ${p.images.length === 1 ? 'Ambiente' : 'Ambientes'}</span>
+        <img src="${p.images[0].thumb || p.images[0].url}" alt="${escapeHtml(p.name)}" crossorigin="anonymous">
+        <div class="card-scene-dots">${dotsHtml}</div>
+      </div>
+      <div class="arch-body">
+        <div class="arch-title-row">
+          <div class="arch-title" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</div>
+          <div class="arch-date">${new Date(p.createdAt).toLocaleDateString('pt-BR')}</div>
+        </div>
+        <div class="arch-specs">
+          Ambientes: ${escapeHtml(p.images.map(i => i.label).join(' • '))}<br>
+          Bolinhas 3D ativas: ${totalHotspots} ${totalHotspots === 1 ? 'conexão' : 'conexões'}
+        </div>
+        <div class="arch-actions">
+          <button class="pill-btn solid" onclick="openViewer('${p.id}', 0)">Explorar 360° ⟶</button>
+          <button class="pill-btn" onclick="shareProject('${p.id}')">Partilhar</button>
+          <button class="pill-btn del" onclick="removeProject('${p.id}')" title="Excluir Projeto">✕</button>
+        </div>
+      </div>
+    </article>`;
+  }).join('');
+}
+
+// ==== UPLOAD E GESTÃO DE ARQUIVOS ====
+function openAdd() {
+  document.getElementById('modal').classList.add('open');
+  setTimeout(() => document.getElementById('projectName').focus(), 50);
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  document.getElementById('projectName').value = '';
+  document.getElementById('fileInput').value = '';
+  selectedFiles = [];
+  renderFileList();
+}
+
+document.getElementById('fileInput').addEventListener('change', e => adicionarArquivos(e.target.files));
+const drop = document.getElementById('drop');
+['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('drag'); }));
+['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('drag'); }));
+drop.addEventListener('drop', e => adicionarArquivos(e.dataTransfer.files));
+
+function adicionarArquivos(files) {
+  for (let f of files) {
+    if (f.type.startsWith('image/')) {
+      const cleanName = f.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+      selectedFiles.push({ file: f, label: cleanName, preview: URL.createObjectURL(f) });
+    }
+  }
+  renderFileList();
+}
+
+function renderFileList() {
+  const list = document.getElementById('fileList');
+  list.innerHTML = selectedFiles.map((item, index) => `
+    <div class="file-item">
+      <img src="${item.preview}" alt="Preview">
+      <input type="text" placeholder="Nome do ambiente (Ex.: Living, Suíte Master...)"
+             value="${escapeHtml(item.label)}" oninput="selectedFiles[${index}].label = this.value">
+      <button class="close-btn" onclick="removerArquivo(${index})" title="Remover">&times;</button>
+    </div>
+  `).join('');
+}
+window.removerArquivo = function(index) { selectedFiles.splice(index, 1); renderFileList(); };
+
+async function saveProject() {
+  const name = document.getElementById('projectName').value.trim();
+  if (!name) return toast('Informe o nome do projeto.');
+  if (selectedFiles.length === 0) return toast('Adicione pelo menos uma imagem 360°.');
+
+  const btn = document.getElementById('saveBtn');
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  let imagensSalvas = [];
+
+  for (let i = 0; i < selectedFiles.length; i++) {
+    let f = selectedFiles[i];
+    btn.textContent = `ENVIANDO ${i + 1} / ${selectedFiles.length}...`;
+    const formData = new FormData();
+    formData.append("image", f.file);
+
+    try {
+      const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
+      const json = await res.json();
+      if (json.success) {
+        imagensSalvas.push({
+          label: f.label.trim() || `Ambiente ${i + 1}`,
+          url: json.data.url,
+          thumb: (json.data.thumb && json.data.thumb.url) ? json.data.thumb.url : json.data.url,
+          hotspots: []
+        });
+      } else { throw new Error("ImgBB Error"); }
+    } catch (e) {
+      toast(`Falha ao enviar a imagem ${i + 1}.`);
+      btn.textContent = originalText;
+      btn.disabled = false;
+      return;
+    }
+  }
+
+  await put({ id: crypto.randomUUID(), name: name, images: imagensSalvas, createdAt: Date.now() });
+  closeModal();
+  await renderProjects();
+  toast('Tour publicado com sucesso!');
+  btn.textContent = originalText;
+  btn.disabled = false;
+}
+
+async function removeProject(id) {
+  const p = projectsCache.find(x => x.id === id);
+  if (!p || !confirm(`Deseja remover "${p.name}" do catálogo?`)) return;
+  await del(id);
+  await renderProjects();
+  toast('Projeto removido.');
+}
+
+function encodeData(obj) { return btoa(unescape(encodeURIComponent(JSON.stringify(obj)))); }
+function decodeData(b64) { return JSON.parse(decodeURIComponent(escape(atob(b64)))); }
+
+async function shareProject(id) {
+  const p = projectsCache.find(x => x.id === id);
+  if (!p) return;
+  const dadosEnxutos = p.images.map(img => ({
+    l: img.label,
+    u: img.url,
+    t: img.thumb,
+    h: (img.hotspots || []).map(hs => ({ p: Math.round(hs.pitch), y: Math.round(hs.yaw), d: hs.destino }))
+  }));
+
+  const linkDados = encodeData(dadosEnxutos);
+  const publicLink = location.href.split('?')[0].split('#')[0] + '?p=' + encodeURIComponent(p.name) + '&t=' + linkDados;
+
+  const shareData = { title: `${p.name} — EKARCHVIZ 360°`, text: `Explore a experiência espacial 360° do projeto ${p.name}.`, url: publicLink };
+  if (navigator.share) {
+    try { await navigator.share(shareData); } catch (e) {}
+  } else {
+    await navigator.clipboard.writeText(publicLink);
+    toast('Link exclusivo do cliente copiado!');
+  }
+}
+
+// ==== MOTOR 3D THREE.JS COM INÉRCIA E HOTSPOTS ====
+let scene, camera, renderer, sphere, texture;
+const state = { yaw: 0, pitch: 0, fov: 72, drag: false, lastX: 0, lastY: 0, vYaw: 0, vPitch: 0, autoRotate: true };
+
+function initViewer() {
+  const canvas = document.getElementById('viewerCanvas');
+  if (!scene) scene = new THREE.Scene();
+  if (!camera) camera = new THREE.PerspectiveCamera(state.fov, innerWidth / innerHeight, 0.1, 1100);
+  camera.position.set(0, 0, 0.01);
+  if (!renderer) {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(innerWidth, innerHeight);
+    animate();
+  }
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  if (!viewerState) return;
+
+  if (!state.drag) {
+    state.vYaw *= 0.91;
+    state.vPitch *= 0.91;
+    if (state.autoRotate && Math.abs(state.vYaw) < 0.01) {
+      state.vYaw = -0.035;
+    }
+  }
+
+  state.yaw += state.vYaw;
+  state.pitch += state.vPitch;
+  state.pitch = Math.max(-85, Math.min(85, state.pitch));
+
+  const phi = THREE.MathUtils.degToRad(90 - state.pitch);
+  const theta = THREE.MathUtils.degToRad(state.yaw);
+  const x = Math.sin(phi) * Math.cos(theta);
+  const y = Math.cos(phi);
+  const z = Math.sin(phi) * Math.sin(theta);
+
+  camera.lookAt(x, y, z);
+  camera.fov = state.fov;
+  camera.updateProjectionMatrix();
+  if (renderer) renderer.render(scene, camera);
+
+  renderHotspotsNaTela();
+}
+
+function load360(image, callback) {
+  const loader = new THREE.TextureLoader();
+  loader.setCrossOrigin('anonymous');
+  texture = loader.load(image, () => {
+    if (sphere) { scene.remove(sphere); sphere.geometry.dispose(); sphere.material.dispose(); }
+    sphere = new THREE.Mesh(
+      new THREE.SphereGeometry(100, 96, 64),
+      new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide })
+    );
+    sphere.scale.x = -1;
+    scene.add(sphere);
+    state.yaw = 0; state.pitch = 0; state.fov = 72;
+    if (callback) callback();
+  });
+}
+
+function toggleAutoRotate() {
+  state.autoRotate = !state.autoRotate;
+  const txt = document.getElementById('rotateStatus');
+  txt.textContent = state.autoRotate ? 'AUTO' : 'OFF';
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen().catch(() => {});
+  }
+}
+
+// ==== RENDERIZAÇÃO DE BOLINHAS 3D DIRETAS (SEM PRÉ-VISUALIZAÇÃO) ====
+function renderHotspotsNaTela() {
+  const container = document.getElementById('hotspotsContainer');
+  if (!viewerState || !camera) return;
+
+  const currentImg = viewerState.images[viewerState.currentIndex];
+  const hotspots = currentImg.hotspots || currentImg.h || [];
+
+  if (container.children.length !== hotspots.length) {
+    container.innerHTML = '';
+    hotspots.forEach((hs, idx) => {
+      const el = document.createElement('div');
+      el.className = 'hotspot-point';
+      const destinoIdx = hs.destino !== undefined ? hs.destino : hs.d;
+      const destRoom = viewerState.images[destinoIdx];
+      const destName = destRoom ? (destRoom.label || destRoom.l) : "Ambiente";
+
+      el.innerHTML = `
+        <div class="hotspot-dot"></div>
+        <div class="hotspot-caption">${escapeHtml(destName)}</div>
+      `;
+
+      el.addEventListener('pointerdown', e => e.stopPropagation());
+      el.onclick = (e) => {
+        if (!isClientMode && e.altKey) {
+          if (confirm(`Deseja remover a bolinha para "${destName}"?`)) {
+            currentImg.hotspots.splice(idx, 1);
+            put(viewerState.projectRef);
+            renderHotspotsNaTela();
+            toast('Bolinha 3D removida.');
+          }
+          return;
+        }
+        mudarCena(destinoIdx);
+      };
+
+      el.oncontextmenu = (e) => {
+        if (!isClientMode) {
+          e.preventDefault();
+          if (confirm(`Excluir esta bolinha de conexão para "${destName}"?`)) {
+            currentImg.hotspots.splice(idx, 1);
+            put(viewerState.projectRef);
+            renderHotspotsNaTela();
+            toast('Bolinha 3D removida.');
+          }
+        }
+      };
+
+      container.appendChild(el);
+    });
+  }
+
+  const children = container.children;
+  hotspots.forEach((hs, i) => {
+    const el = children[i];
+    const pitch = hs.pitch !== undefined ? hs.pitch : hs.p;
+    const yaw = hs.yaw !== undefined ? hs.yaw : hs.y;
+
+    const phi = THREE.MathUtils.degToRad(90 - pitch);
+    const theta = THREE.MathUtils.degToRad(yaw);
+
+    const vector = new THREE.Vector3(
+      50 * Math.sin(phi) * Math.cos(theta),
+      50 * Math.cos(phi),
+      50 * Math.sin(phi) * Math.sin(theta)
+    );
+    vector.project(camera);
+
+    if (vector.z > 1) {
+      el.style.display = 'none';
+    } else {
+      el.style.display = 'flex';
+      const x = (vector.x * 0.5 + 0.5) * innerWidth;
+      const y = (vector.y * -0.5 + 0.5) * innerHeight;
+      el.style.left = `${x}px`;
+      el.style.top = `${y}px`;
+    }
+  });
+}
+
+function abrirModalHotspot() {
+  state.autoRotate = false;
+  document.getElementById('rotateStatus').textContent = 'OFF';
+
+  const modal = document.getElementById('modalHotspot');
+  const select = document.getElementById('hotspotDestino');
+  select.innerHTML = '';
+
+  viewerState.images.forEach((img, i) => {
+    if (i !== viewerState.currentIndex) {
+      select.innerHTML += `<option value="${i}">${escapeHtml(img.label || img.l)}</option>`;
+    }
+  });
+
+  if (select.children.length === 0) {
+    toast("Adicione pelo menos 2 ambientes no projeto para conectá-los.");
+    return;
+  }
+  modal.classList.add('open');
+}
+
+function fecharModalHotspot() {
+  document.getElementById('modalHotspot').classList.remove('open');
+}
+
+function salvarHotspot() {
+  const destinoIndex = parseInt(document.getElementById('hotspotDestino').value);
+  const imgData = viewerState.images[viewerState.currentIndex];
+  if (!imgData.hotspots) imgData.hotspots = [];
+
+  imgData.hotspots.push({
+    yaw: state.yaw,
+    pitch: state.pitch,
+    destino: destinoIndex
+  });
+
+  put(viewerState.projectRef).then(() => {
+    document.getElementById('hotspotsContainer').innerHTML = '';
+    fecharModalHotspot();
+    renderProjects();
+    toast('Bolinha 3D fixada no ambiente!');
+  });
+}
+
+window.mudarCena = function(index) {
+  if (!viewerState || !viewerState.images[index]) return;
+  if (viewerState.loadedIndex === index) return;
+  viewerState.currentIndex = index;
+
+  const overlay = document.getElementById('fadeOverlay');
+  const spinner = document.getElementById('fadeSpinner');
+  overlay.style.opacity = '1';
+  spinner.style.display = 'block';
+  document.getElementById('hotspotsContainer').innerHTML = '';
+
+  const botoes = document.getElementById('viewerNav').children;
+  for (let i = 0; i < botoes.length; i++) {
+    botoes[i].classList.toggle('active', i === index);
+  }
+
+  setTimeout(() => {
+    const ambiente = viewerState.images[index];
+    document.getElementById('viewerName').textContent = viewerState.name;
+    document.getElementById('viewerIndex').textContent = String(index + 1).padStart(2, '0');
+    document.getElementById('viewerEnv').textContent = ambiente.label || ambiente.l;
+
+    load360(ambiente.url || ambiente.u, () => {
+      viewerState.loadedIndex = index;
+      overlay.style.opacity = '0';
+      setTimeout(() => spinner.style.display = 'none', 400);
+    });
+  }, 360);
+};
+
+function openViewer(id, startScene = 0) {
+  const p = projectsCache.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('viewer').classList.add('open');
+
+  isClientMode = false;
+  document.getElementById('btnAddHotspot').style.display = 'inline-flex';
+  document.getElementById('btnCloseViewer').style.display = 'inline-flex';
+
+  viewerState = { projectRef: p, name: p.name, images: p.images, currentIndex: startScene, loadedIndex: -1 };
+  initViewer();
+  montarMenuNavegacao();
+  mudarCena(startScene);
+}
+
+// Monta as Bolinhas de Navegação Inferiores (Sem Pré-visualização)
+function montarMenuNavegacao() {
+  const nav = document.getElementById('viewerNav');
+  if (viewerState.images.length <= 1) {
+    nav.style.display = 'none';
+    return;
+  }
+  nav.style.display = 'flex';
+  nav.innerHTML = viewerState.images.map((img, index) => {
+    const nome = img.label || img.l || `Ambiente ${index + 1}`;
+    return `
+      <div class="nav-dot-item" onclick="mudarCena(${index})">
+        <span class="nav-dot-circle"></span>
+        <span class="nav-dot-label">${escapeHtml(nome)}</span>
+      </div>`;
+  }).join('');
+}
+
+function closeViewer() {
+  document.getElementById('viewer').classList.remove('open');
+  viewerState = null;
+}
+
+const canvas = document.getElementById('viewerCanvas');
+canvas.addEventListener('pointerdown', e => {
+  state.drag = true;
+  state.autoRotate = false;
+  document.getElementById('rotateStatus').textContent = 'OFF';
+  state.lastX = e.clientX;
+  state.lastY = e.clientY;
+  state.vYaw = 0;
+  state.vPitch = 0;
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove', e => {
+  if (!state.drag) return;
+  const dx = e.clientX - state.lastX;
+  const dy = e.clientY - state.lastY;
+  state.vYaw = -dx * 0.08;
+  state.vPitch = -dy * 0.08;
+  state.lastX = e.clientX;
+  state.lastY = e.clientY;
+});
+canvas.addEventListener('pointerup', () => state.drag = false);
+canvas.addEventListener('pointercancel', () => state.drag = false);
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  state.fov = Math.max(38, Math.min(92, state.fov + e.deltaY * 0.04));
+}, { passive: false });
+
+window.addEventListener('resize', () => {
+  if (renderer) {
+    renderer.setSize(innerWidth, innerHeight);
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+  }
+});
+
+function showAbout() { document.getElementById('about').classList.add('open'); }
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (!isClientMode) closeViewer();
+    closeModal();
+    document.getElementById('about').classList.remove('open');
+    fecharModalHotspot();
+  }
+});
+
+// Inicialização: Detecta Modo Cliente (?t=...) ou Painel do Estúdio
+(async () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const tourData = urlParams.get('t');
+  const clientName = urlParams.get('p') || 'EKARCHVIZ 360°';
+
+  if (tourData) {
+    isClientMode = true;
+    document.getElementById('mainApp').style.display = 'none';
+    document.getElementById('btnAddHotspot').style.display = 'none';
+    document.getElementById('btnCloseViewer').style.display = 'none';
+
+    const imagensExtraidas = decodeData(tourData);
+    viewerState = { name: clientName, images: imagensExtraidas, currentIndex: 0, loadedIndex: -1 };
+
+    document.getElementById('viewer').classList.add('open');
+    initViewer();
+    montarMenuNavegacao();
+    mudarCena(0);
+  } else {
+    await openDB();
+    await renderProjects();
+  }
+})();
+</script>
+</body>
+</html>
