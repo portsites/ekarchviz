@@ -4,8 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>EKARCHVIZ — Spatial 360° Experience</title>
-<link rel="icon" type="image/png" href="favicon.png">
-  
+
 <!-- Tipografia Editorial & Técnica Internacional -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -503,11 +502,9 @@
     width: 100%; height: 100%;
     object-fit: cover;
     transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease;
-    filter: brightness(0.92);
   }
   .arch-card:hover .arch-thumb img {
     transform: scale(1.06);
-    filter: brightness(1);
   }
   .arch-thumb::after {
     content: '';
@@ -1162,9 +1159,9 @@
       </div>
       <div id="drop" class="drop-zone">
         <strong>Arraste ou selecione os renders 360°</strong>
-        <p>Suporta múltiplos arquivos JPG, PNG ou WebP (Proporção 2:1 • Até 32MB por foto)</p>
+        <p>Suporta qualquer formato de imagem (Até 32MB por foto)</p>
         <label class="nav-pill active" for="fileInput" style="display:inline-block; cursor:pointer;">Selecionar Imagens</label>
-        <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" multiple />
+        <input id="fileInput" type="file" accept="image/*" multiple />
       </div>
       <div id="fileList" class="file-list"></div>
     </div>
@@ -1278,7 +1275,7 @@
 <script>
 // ==========================================
 // CHAVE DA API DO IMGBB
-const IMGBB_API_KEY = "e0eda73472324c4a7cff8c0841956d57";
+const IMGBB_API_KEY = "e5f84830538d7abd4d1d9c3f2a9e228b";
 // ==========================================
 
 const DB_NAME = "cy360db4";
@@ -1565,6 +1562,10 @@ function initViewer() {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.setSize(innerWidth, innerHeight);
+    
+    // Configuração para exibir as cores 100% originais do render (sem filtros Lineares)
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    
     animate();
   }
 }
@@ -1604,6 +1605,10 @@ function load360(image, callback) {
   loader.setCrossOrigin('anonymous');
   texture = loader.load(image, () => {
     if (sphere) { scene.remove(sphere); sphere.geometry.dispose(); sphere.material.dispose(); }
+    
+    // Configuração para exibir as cores 100% originais do render
+    texture.colorSpace = THREE.SRGBColorSpace;
+    
     sphere = new THREE.Mesh(
       new THREE.SphereGeometry(100, 96, 64),
       new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide })
