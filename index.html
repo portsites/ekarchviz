@@ -53,7 +53,7 @@
   }
 
   /* =========================================================
-     PALCO HERO "EKARCH" (Design Editorial Internacional)
+     PALCO HERO "EKARCH"
      ========================================================= */
   .terra-stage {
     position: relative;
@@ -95,7 +95,7 @@
     pointer-events: none;
   }
 
-  /* BARRA DE NAVEGAÇÃO SUPERIOR EM PÍLULAS */
+  /* BARRA DE NAVEGAÇÃO SUPERIOR */
   .top-nav {
     display: flex;
     align-items: center;
@@ -202,7 +202,7 @@
   }
   .cta-arrow-btn:hover svg { transform: translateX(6px); }
 
-  /* CENTRO MONUMENTAL E META-INFORMAÇÕES */
+  /* CENTRO MONUMENTAL */
   .hero-center-area {
     position: relative;
     margin: auto 0;
@@ -269,9 +269,7 @@
     letter-spacing: -0.01em;
   }
 
-  /* =========================================================
-     PINOS ARQUITETÔNICOS E CARD DE ESPECIFICAÇÕES NA CAPA
-     ========================================================= */
+  /* PINOS NA CAPA */
   .stage-pins-layer {
     position: relative;
     min-height: 230px;
@@ -359,7 +357,7 @@
     background: var(--champagne);
   }
 
-  /* RODAPÉ DO PALCO HERO (Instagram @erickrender + 2 Colunas Editoriais) */
+  /* RODAPÉ DO PALCO HERO */
   .hero-bottom-bar {
     display: flex;
     justify-content: space-between;
@@ -435,7 +433,7 @@
   }
 
   /* =========================================================
-     CATÁLOGO DE PROJETOS (ACERVO 360°)
+     CATÁLOGO DE PROJETOS
      ========================================================= */
   .catalog-section {
     padding: 0 12px;
@@ -502,9 +500,11 @@
     width: 100%; height: 100%;
     object-fit: cover;
     transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease;
+    filter: brightness(0.92);
   }
   .arch-card:hover .arch-thumb img {
     transform: scale(1.06);
+    filter: brightness(1);
   }
   .arch-thumb::after {
     content: '';
@@ -742,6 +742,7 @@
   .drop-zone p { font-size: 12px; color: var(--ivory-dim); margin-bottom: 16px; }
   .drop-zone input { display: none; }
 
+  /* ARRASTAR E SOLTAR LISTA */
   .file-list { margin-top: 16px; display: grid; gap: 10px; }
   .file-item {
     display: flex;
@@ -751,8 +752,24 @@
     padding: 9px 12px;
     border-radius: 12px;
     border: 1px solid var(--border);
+    transition: background 0.2s, border-color 0.2s;
   }
-  .file-item img { width: 54px; height: 40px; border-radius: 7px; object-fit: cover; }
+  .file-item.dragging {
+    opacity: 0.5;
+    background: rgba(243, 237, 226, 0.1);
+  }
+  .drag-handle {
+    cursor: grab;
+    color: var(--ivory-muted);
+    padding: 0 4px;
+    font-size: 16px;
+    line-height: 1;
+    user-select: none;
+  }
+  .drag-handle:active { cursor: grabbing; }
+  .drag-handle:hover { color: var(--ivory); }
+
+  .file-item img { width: 54px; height: 40px; border-radius: 7px; object-fit: cover; pointer-events: none;}
   .file-item input {
     flex: 1;
     background: rgba(0, 0, 0, 0.35);
@@ -861,7 +878,7 @@
     flex-wrap: wrap;
   }
 
-  /* HOTSPOTS 3D NO ESPAÇO 360° (SEM PRÉ-VISUALIZAÇÃO) */
+  /* HOTSPOTS 3D NO ESPAÇO 360° */
   #hotspotsContainer {
     position: absolute;
     inset: 0;
@@ -879,9 +896,7 @@
     align-items: center;
     z-index: 10;
   }
-  .hotspot-point:hover {
-    z-index: 50;
-  }
+  .hotspot-point:hover { z-index: 50; }
   .hotspot-dot {
     width: 18px; height: 18px;
     border-radius: 50%;
@@ -917,7 +932,7 @@
     transition: opacity 0.2s ease;
   }
 
-  /* DOCK INFERIOR DE BOLINHAS DE NAVEGAÇÃO (SEM PRÉ-VISUALIZAÇÃO) */
+  /* DOCK INFERIOR DE BOLINHAS DE NAVEGAÇÃO */
   .viewer-nav {
     position: absolute;
     bottom: 28px; left: 50%;
@@ -935,7 +950,6 @@
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
   }
 
-  /* Assinatura @erickrender no Canto Inferior Esquerdo do Viewer */
   .viewer-insta-corner {
     position: absolute;
     bottom: 28px;
@@ -1034,7 +1048,6 @@
     <div class="terra-backdrop" id="heroBackdrop"></div>
     <div class="terra-Atmosphere"></div>
 
-    <!-- Navegação Superior em Pílulas -->
     <header class="top-nav">
       <div class="pill-group">
         <button class="nav-pill active" onclick="window.scrollTo({top:0,behavior:'smooth'})">Principal</button>
@@ -1066,7 +1079,6 @@
       </div>
     </header>
 
-    <!-- Tipografia Monumental Sobreposta à Arquitetura -->
     <div class="hero-center-area">
       <div class="hero-top-meta">
         <div class="meta-studio">EKARCHVIZ — Spatial Studio</div>
@@ -1087,7 +1099,6 @@
       </div>
     </div>
 
-    <!-- Camada de Pinos Arquitetônicos e Card de Vidro Conectado -->
     <div class="stage-pins-layer">
       <div class="spec-glass-wrapper">
         <div class="spec-pin-anchor">
@@ -1103,11 +1114,9 @@
         </div>
       </div>
 
-      <!-- Bolinhas de Navegação no Palco -->
       <div class="hero-Interactive-dots" id="heroInteractiveDots"></div>
     </div>
 
-    <!-- Barra Inferior do Palco: @erickrender no Canto Inferior Esquerdo + 2 Colunas Editoriais -->
     <div class="hero-bottom-bar">
       <div class="circle-actions">
         <a href="https://www.instagram.com/erickrender/" target="_blank" rel="noopener noreferrer" class="insta-link-pill" title="Acessar Instagram @erickrender">
@@ -1163,6 +1172,8 @@
         <label class="nav-pill active" for="fileInput" style="display:inline-block; cursor:pointer;">Selecionar Imagens</label>
         <input id="fileInput" type="file" accept="image/*" multiple />
       </div>
+      
+      <p style="font-size:10.5px; color:var(--ivory-dim); margin-top:16px; margin-bottom:-4px;">Arraste pelo ícone ⋮⋮ para reordenar a sequência (o primeiro será a Capa).</p>
       <div id="fileList" class="file-list"></div>
     </div>
     <div class="modal-foot">
@@ -1181,7 +1192,6 @@
   <canvas id="viewerCanvas"></canvas>
   <div id="hotspotsContainer"></div>
 
-  <!-- Cabeçalho Flutuante do Viewer -->
   <div class="viewer-header">
     <div class="viewer-brand-pill">
       <div class="dot-matrix">
@@ -1210,7 +1220,6 @@
     </div>
   </div>
 
-  <!-- Link @erickrender no Canto Inferior Esquerdo do Visualizador -->
   <div class="viewer-insta-corner">
     <a href="https://www.instagram.com/erickrender/" target="_blank" rel="noopener noreferrer" class="insta-link-pill" title="Instagram @erickrender">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -1222,7 +1231,6 @@
     </a>
   </div>
 
-  <!-- Barra Inferior de Bolinhas de Navegação -->
   <div class="viewer-nav" id="viewerNav"></div>
 </div>
 
@@ -1335,7 +1343,6 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m]));
 }
 
-// Renderiza os Pinos Interativos na Capa Hero (Sem Pré-visualização)
 function renderHeroStagePins() {
   const container = document.getElementById('heroInteractiveDots');
   const backdrop = document.getElementById('heroBackdrop');
@@ -1431,7 +1438,7 @@ async function renderProjects() {
   }).join('');
 }
 
-// ==== UPLOAD E GESTÃO DE ARQUIVOS ====
+// ==== UPLOAD E DRAG & DROP GESTÃO DE ARQUIVOS ====
 function openAdd() {
   document.getElementById('modal').classList.add('open');
   setTimeout(() => document.getElementById('projectName').focus(), 50);
@@ -1460,13 +1467,52 @@ function adicionarArquivos(files) {
   renderFileList();
 }
 
+let arrastadoIndex = null;
+window.iniciarArraste = function(e, index) {
+    arrastadoIndex = index;
+    e.dataTransfer.effectAllowed = 'move';
+    e.target.closest('.file-item').classList.add('dragging');
+};
+window.permitirSoltar = function(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+};
+window.entrarArraste = function(e) {
+    e.preventDefault();
+    const item = e.target.closest('.file-item');
+    if(item) item.style.borderColor = 'var(--ivory)';
+};
+window.sairArraste = function(e) {
+    const item = e.target.closest('.file-item');
+    if(item) item.style.borderColor = 'var(--border)';
+};
+window.soltarArquivo = function(e, dropIndex) {
+    e.preventDefault();
+    const item = e.target.closest('.file-item');
+    if(item) item.style.borderColor = 'var(--border)';
+
+    if (arrastadoIndex === null || arrastadoIndex === dropIndex) return;
+    
+    const arrastado = selectedFiles[arrastadoIndex];
+    selectedFiles.splice(arrastadoIndex, 1);
+    selectedFiles.splice(dropIndex, 0, arrastado);
+    
+    renderFileList();
+    arrastadoIndex = null;
+};
+document.addEventListener('dragend', (e) => {
+    if(e.target.classList && e.target.classList.contains('file-item')) {
+        e.target.classList.remove('dragging');
+    }
+});
+
 function renderFileList() {
   const list = document.getElementById('fileList');
   list.innerHTML = selectedFiles.map((item, index) => `
-    <div class="file-item">
+    <div class="file-item" draggable="true" ondragstart="iniciarArraste(event, ${index})" ondragover="permitirSoltar(event)" ondrop="soltarArquivo(event, ${index})" ondragenter="entrarArraste(event)" ondragleave="sairArraste(event)">
+      <div class="drag-handle" title="Arraste para reordenar">⋮⋮</div>
       <img src="${item.preview}" alt="Preview">
-      <input type="text" placeholder="Nome do ambiente (Ex.: Living, Suíte Master...)"
-             value="${escapeHtml(item.label)}" oninput="selectedFiles[${index}].label = this.value">
+      <input type="text" placeholder="Nome do ambiente (Ex.: Living...)" value="${escapeHtml(item.label)}" oninput="selectedFiles[${index}].label = this.value">
       <button class="close-btn" onclick="removerArquivo(${index})" title="Remover">&times;</button>
     </div>
   `).join('');
@@ -1563,9 +1609,7 @@ function initViewer() {
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.setSize(innerWidth, innerHeight);
     
-    // Configuração para exibir as cores 100% originais do render (sem filtros Lineares)
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    
     animate();
   }
 }
@@ -1606,7 +1650,6 @@ function load360(image, callback) {
   texture = loader.load(image, () => {
     if (sphere) { scene.remove(sphere); sphere.geometry.dispose(); sphere.material.dispose(); }
     
-    // Configuração para exibir as cores 100% originais do render
     texture.colorSpace = THREE.SRGBColorSpace;
     
     sphere = new THREE.Mesh(
@@ -1634,7 +1677,6 @@ function toggleFullscreen() {
   }
 }
 
-// ==== RENDERIZAÇÃO DE BOLINHAS 3D DIRETAS (SEM PRÉ-VISUALIZAÇÃO) ====
 function renderHotspotsNaTela() {
   const container = document.getElementById('hotspotsContainer');
   if (!viewerState || !camera) return;
@@ -1803,7 +1845,6 @@ function openViewer(id, startScene = 0) {
   mudarCena(startScene);
 }
 
-// Monta as Bolinhas de Navegação Inferiores (Sem Pré-visualização)
 function montarMenuNavegacao() {
   const nav = document.getElementById('viewerNav');
   if (viewerState.images.length <= 1) {
