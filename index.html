@@ -808,22 +808,46 @@
     inset: 0;
     background: #08090b;
     z-index: 102;
-    transition: opacity 0.42s ease;
+    transition: opacity 0.28s ease;
     pointer-events: none;
     opacity: 1;
     display: flex;
+    flex-direction: column;
+    gap: 12px;
     align-items: center;
     justify-content: center;
   }
   .spinner {
-    width: 44px; height: 44px;
+    width: 38px; height: 38px;
     border: 2px solid rgba(243, 237, 226, 0.14);
     border-top-color: var(--ivory);
     border-radius: 50%;
-    animation: spin 0.85s linear infinite;
+    animation: spin 0.75s linear infinite;
     display: none;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Indicador discreto de refinamento HD */
+  .hd-badge {
+    position: absolute;
+    bottom: 88px;
+    right: 28px;
+    z-index: 106;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    background: rgba(14, 15, 18, 0.72);
+    border: 1px solid var(--border);
+    color: var(--champagne);
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  .hd-badge.visible { opacity: 1; }
 
   /* Topo do Visualizador */
   .viewer-header {
@@ -1170,7 +1194,7 @@
       </div>
       <div id="drop" class="drop-zone">
         <strong>Arraste ou selecione os renders 360°</strong>
-        <p>Suporta qualquer resolução 360° (Otimização automática para GPU)</p>
+        <p>Compressão inteligente WebP/JPEG para carregamento instantâneo</p>
         <label class="nav-pill active" for="fileInput" style="display:inline-block; cursor:pointer;">Selecionar Imagens</label>
         <input id="fileInput" type="file" accept="image/*" multiple />
       </div>
@@ -1193,6 +1217,7 @@
 
   <canvas id="viewerCanvas"></canvas>
   <div id="hotspotsContainer"></div>
+  <div id="hdBadge" class="hd-badge">Otimizando Nitidez 4K...</div>
 
   <div class="viewer-header">
     <div class="viewer-brand-pill">
@@ -1268,11 +1293,11 @@
     </div>
     <div class="modal-body" style="color:var(--ivory-dim); font-size:13px; line-height:1.8;">
       <p style="margin-bottom:14px; color:var(--ivory);">
-        <strong>EKARCHVIZ — Spatial 360° Engine</strong> combina design editorial internacional com navegação tridimensional leve e responsiva.
+        <strong>EKARCHVIZ — Spatial 360° Engine</strong> combina design editorial internacional com navegação tridimensional ultra-rápida.
       </p>
       <p>
-        • <strong>Bolinhas de Navegação 3D:</strong> Aponte a câmera para qualquer passagem no tour e clique em <b>+ Fixar Bolinha 3D Aqui</b> para conectar os ambientes.<br>
-        • <strong>Modo Cliente Inteligente:</strong> Ao clicar em <b>Partilhar</b>, o link gerado abre diretamente o tour em tela cheia no celular ou computador do cliente.
+        • <strong>Carregamento Progressivo & Preload:</strong> Os ambientes abrem instantaneamente e pré-carregam as salas vizinhas em segundo plano.<br>
+        • <strong>Links Ultra-Curtos:</strong> Ao clicar em <b>Partilhar</b>, o sistema compacta os dados e gera automaticamente um link curto para envio direto ao cliente.
       </p>
     </div>
   </div>
@@ -1280,8 +1305,9 @@
 
 <div id="toast" class="toast"></div>
 
-<!-- Motor Gráfico Three.js -->
+<!-- Motor Gráfico Three.js + Compressor de URL LZ-String -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 <script>
 // ==========================================
 // CHAVE DA API DO IMGBB
@@ -1295,6 +1321,10 @@ let projectsCache = [];
 let selectedFiles = [];
 let viewerState = null;
 let isClientMode = false;
+
+// Cache em memória de texturas e imagens já baixadas (torna a troca de ambientes instantânea)
+const textureMemoryCache = new Map();
+const imagePromiseCache = new Map();
 
 function toast(msg) {
   const el = document.getElementById('toast');
@@ -1345,7 +1375,7 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m]));
 }
 
-// Helper: Redimensiona e comprime imagem se ultrapassar limite seguro (evita erro no upload e tela preta na GPU)
+// Comprime para WebP (ou JPEG) em 4096px para que a foto fique até 85% mais leve na internet sem perder qualidade no 360°
 function prepararImagemParaUpload(file, maxWidth = 4096) {
   return new Promise((resolve) => {
     const img = new Image();
@@ -1354,7 +1384,6 @@ function prepararImagemParaUpload(file, maxWidth = 4096) {
       let w = img.naturalWidth || img.width;
       let h = img.naturalHeight || img.height;
 
-      // Garante resolução máxima de 4096px (compatível com 100% das GPUs desktop/mobile e leve para o ImgBB)
       if (w > maxWidth) {
         h = Math.round(h * (maxWidth / w));
         w = maxWidth;
@@ -1366,20 +1395,23 @@ function prepararImagemParaUpload(file, maxWidth = 4096) {
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, w, h);
 
-      // Gera também um dataURL de alta qualidade caso o usuário esteja offline
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.90);
+      // Tenta WebP primeiro (muito mais leve e rápido de baixar no link compartilhado)
+      const dataUrl = canvas.toDataURL('image/webp', 0.86);
+      const mimeType = dataUrl.startsWith('data:image/webp') ? 'image/webp' : 'image/jpeg';
+      const ext = mimeType === 'image/webp' ? 'webp' : 'jpg';
 
       canvas.toBlob((blob) => {
         URL.revokeObjectURL(objectUrl);
         resolve({
           blob: blob || file,
-          dataUrl: dataUrl
+          dataUrl: dataUrl,
+          ext: ext
         });
-      }, 'image/jpeg', 0.90);
+      }, mimeType, 0.86);
     };
     img.onerror = () => {
       URL.revokeObjectURL(objectUrl);
-      resolve({ blob: file, dataUrl: null });
+      resolve({ blob: file, dataUrl: null, ext: 'jpg' });
     };
     img.src = objectUrl;
   });
@@ -1392,7 +1424,7 @@ function renderHeroStagePins() {
   if (projectsCache.length > 0 && projectsCache[0].images && projectsCache[0].images.length > 0) {
     const latest = projectsCache[0];
     const firstImg = latest.images[0];
-    const coverUrl = firstImg.localData || firstImg.url || firstImg.thumb;
+    const coverUrl = firstImg.localData || firstImg.thumb || firstImg.url;
     backdrop.style.backgroundImage = `url("${coverUrl}")`;
 
     const positions = [
@@ -1475,7 +1507,7 @@ async function renderProjects() {
         </div>
         <div class="arch-actions">
           <button class="pill-btn solid" onclick="openViewer('${p.id}', 0)">Explorar 360° ⟶</button>
-          <button class="pill-btn" onclick="shareProject('${p.id}')">Partilhar</button>
+          <button class="pill-btn" id="shareBtn-${p.id}" onclick="shareProject('${p.id}')">Partilhar</button>
           <button class="pill-btn del" onclick="removeProject('${p.id}')" title="Excluir Projeto">✕</button>
         </div>
       </div>
@@ -1576,14 +1608,13 @@ async function saveProject() {
 
   for (let i = 0; i < selectedFiles.length; i++) {
     let f = selectedFiles[i];
-    btn.textContent = `PROCESSANDO ${i + 1} / ${selectedFiles.length}...`;
+    btn.textContent = `OTIMIZANDO ${i + 1} / ${selectedFiles.length}...`;
 
-    // Otimiza imagem para no máximo 4096px (evita estouro de GPU / tela preta e acelera upload)
-    const { blob, dataUrl } = await prepararImagemParaUpload(f.file, 4096);
+    const { blob, dataUrl, ext } = await prepararImagemParaUpload(f.file, 4096);
 
     btn.textContent = `ENVIANDO ${i + 1} / ${selectedFiles.length}...`;
     const formData = new FormData();
-    formData.append("image", blob, `panorama_${i + 1}.jpg`);
+    formData.append("image", blob, `p${i + 1}.${ext}`);
 
     let remoteUrl = null;
     let remoteThumb = null;
@@ -1592,12 +1623,13 @@ async function saveProject() {
       const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
       const json = await res.json();
       if (json && json.success && json.data) {
-        // Prioriza a imagem em resolução cheia (display_url / image.url)
         remoteUrl = (json.data.image && json.data.image.url) ? json.data.image.url : json.data.url;
-        remoteThumb = (json.data. display_url) ? json.data.display_url : remoteUrl;
+        remoteThumb = (json.data.medium && json.data.medium.url)
+          ? json.data.medium.url
+          : ((json.data.thumb && json.data.thumb.url) ? json.data.thumb.url : remoteUrl);
       }
     } catch (e) {
-      console.warn("Aviso no upload ImgBB, usando armazenamento local de segurança:", e);
+      console.warn("Aviso no upload ImgBB:", e);
     }
 
     if (!remoteUrl && !dataUrl) {
@@ -1611,7 +1643,7 @@ async function saveProject() {
       label: f.label.trim() || `Ambiente ${i + 1}`,
       url: remoteUrl || dataUrl,
       thumb: remoteThumb || remoteUrl || dataUrl,
-      localData: dataUrl, // Mantém cópia local rápida e imune a bloqueios CORS
+      localData: dataUrl,
       hotspots: []
     });
   }
@@ -1632,39 +1664,130 @@ async function removeProject(id) {
   toast('Projeto removido.');
 }
 
-function encodeData(obj) { return btoa(unescape(encodeURIComponent(JSON.stringify(obj)))); }
-function decodeData(b64) { return JSON.parse(decodeURIComponent(escape(atob(b64)))); }
+// =========================================================
+// SISTEMA DE COMPACTAÇÃO E ENCURTAMENTO DE LINK ULTRA-CURTO
+// =========================================================
+function encurtarUrlImgbb(url) {
+  if (!url) return "";
+  // Remove o prefixo padrão "https://i.ibb.co/" para economizar dezenas de caracteres por foto
+  return String(url).replace(/^https?:\/\/i\.ibb\.co\//i, "");
+}
+
+function restaurarUrlImgbb(shortStr) {
+  if (!shortStr) return "";
+  if (shortStr.startsWith("http") || shortStr.startsWith("data:") || shortStr.startsWith("blob:")) return shortStr;
+  return `https://i.ibb.co/${shortStr}`;
+}
+
+// Formato ultra-compacto v2: [nomeProjeto, [[label, shortUrl, shortThumb, [[pitch,yaw,dest], ...]], ...]]
+function compactarTourParaUrl(project) {
+  const payload = [
+    project.name,
+    project.images.map(img => {
+      const u = encurtarUrlImgbb(img.url);
+      const t = encurtarUrlImgbb(img.thumb);
+      const hs = (img.hotspots || []).map(h => [Math.round(h.pitch), Math.round(h.yaw), h.destino]);
+      // Se thumb for igual à URL principal, envia string vazia para não duplicar no link
+      return [img.label, u, t === u ? "" : t, hs];
+    })
+  ];
+  const jsonStr = JSON.stringify(payload);
+  if (window.LZString) {
+    return LZString.compressToEncodedURIComponent(jsonStr);
+  }
+  return btoa(unescape(encodeURIComponent(jsonStr)));
+}
+
+function descompactarTourDaUrl(queryParams) {
+  // Suporta formato novo ultra-curto (?z=...) e também links antigos (?t=...)
+  const z = queryParams.get('z');
+  if (z && window.LZString) {
+    try {
+      const jsonStr = LZString.decompressFromEncodedURIComponent(z);
+      const [name, imgs] = JSON.parse(jsonStr);
+      return {
+        name: name || 'EKARCHVIZ 360°',
+        images: imgs.map(item => {
+          const fullUrl = restaurarUrlImgbb(item[1]);
+          const thumbUrl = item[2] ? restaurarUrlImgbb(item[2]) : fullUrl;
+          const hs = (item[3] || []).map(h => ({ p: h[0], y: h[1], d: h[2] }));
+          return { l: item[0], u: fullUrl, t: thumbUrl, h: hs };
+        })
+      };
+    } catch (e) {
+      console.error("Erro ao ler link compactado:", e);
+    }
+  }
+
+  // Fallback para links antigos (?t=...&p=...)
+  const t = queryParams.get('t');
+  const p = queryParams.get('p') || 'EKARCHVIZ 360°';
+  if (t) {
+    const imgs = JSON.parse(decodeURIComponent(escape(atob(t))));
+    return { name: p, images: imgs };
+  }
+  return null;
+}
+
+// Tenta criar um link curto real (ex: is.gd / tinyurl) gratuitamente sem precisar de chave
+async function tentarEncurtarLinkExterno(longUrl) {
+  // Só tenta encurtar se estiver hospedado em um domínio público (não funciona para localhost ou file://)
+  if (!/^https?:\/\//i.test(longUrl) || /localhost|127\.0\.0\.1/i.test(longUrl)) {
+    return longUrl;
+  }
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 2200);
+    const resp = await fetch(`https://is.gd/create.php?format=json&url=${encodeURIComponent(longUrl)}`, {
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data && data.shorturl) return data.shorturl;
+    }
+  } catch (e) {}
+  return longUrl;
+}
 
 async function shareProject(id) {
   const p = projectsCache.find(x => x.id === id);
   if (!p) return;
 
-  // Verifica se todas as imagens possuem URL na nuvem para o link compartilhável funcionar em outros aparelhos
-  const possuiApenasLocal = p.images.some(img => String(img.url).startsWith('data:'));
-  if (possuiApenasLocal) {
-    toast('Aviso: Algumas imagens estão apenas no cache local.');
+  const btn = document.getElementById(`shareBtn-${id}`);
+  const originalTxt = btn ? btn.textContent : 'Partilhar';
+  if (btn) btn.textContent = 'GERANDO LINK...';
+
+  const baseUrl = location.href.split('?')[0].split('#')[0];
+  const codigoCompacto = compactarTourParaUrl(p);
+  const linkCompacto = `${baseUrl}?z=${codigoCompacto}`;
+
+  // Tenta encurtar ainda mais via is.gd (se disponível), senão usa o link já compactado com LZString
+  const finalLink = await tentarEncurtarLinkExterno(linkCompacto);
+
+  if (btn) btn.textContent = originalTxt;
+
+  const shareData = {
+    title: `${p.name} — EKARCHVIZ 360°`,
+    text: `Explore a experiência espacial 360° do projeto ${p.name}.`,
+    url: finalLink
+  };
+
+  if (navigator.share) {
+    try { await navigator.share(shareData); return; } catch (e) {}
   }
 
-  const dadosEnxutos = p.images.map(img => ({
-    l: img.label,
-    u: img.url,
-    t: img.thumb,
-    h: (img.hotspots || []).map(hs => ({ p: Math.round(hs.pitch), y: Math.round(hs.yaw), d: hs.destino }))
-  }));
-
-  const linkDados = encodeData(dadosEnxutos);
-  const publicLink = location.href.split('?')[0].split('#')[0] + '?p=' + encodeURIComponent(p.name) + '&t=' + linkDados;
-
-  const shareData = { title: `${p.name} — EKARCHVIZ 360°`, text: `Explore a experiência espacial 360° do projeto ${p.name}.`, url: publicLink };
-  if (navigator.share) {
-    try { await navigator.share(shareData); } catch (e) {}
-  } else {
-    await navigator.clipboard.writeText(publicLink);
-    toast('Link exclusivo do cliente copiado!');
+  try {
+    await navigator.clipboard.writeText(finalLink);
+    toast('Link curto do cliente copiado!');
+  } catch (e) {
+    prompt('Copie o link curto abaixo:', finalLink);
   }
 }
 
-// ==== MOTOR 3D THREE.JS COM INÉRCIA, AJUSTE AUTOMÁTICO DE GPU E HOTSPOTS ====
+// =========================================================
+// MOTOR 3D THREE.JS COM CARREGAMENTO PROGRESSIVO + PRELOAD
+// =========================================================
 let scene, camera, renderer, sphere, currentTexture;
 const state = { yaw: 0, pitch: 0, fov: 72, drag: false, lastX: 0, lastY: 0, vYaw: 0, vPitch: 0, autoRotate: true };
 
@@ -1716,21 +1839,44 @@ function animate() {
   renderHotspotsNaTela();
 }
 
-// Carrega uma imagem HTML a partir de URL ou DataURL com fallback seguro
+// Baixa uma imagem apenas uma vez e guarda a Promise em cache
 function carregarElementoImagem(src) {
-  return new Promise((resolve, reject) => {
+  if (!src) return Promise.reject("URL vazia");
+  if (imagePromiseCache.has(src)) return imagePromiseCache.get(src);
+
+  const prom = new Promise((resolve, reject) => {
     const img = new Image();
     if (!src.startsWith('data:') && !src.startsWith('blob:')) {
       img.crossOrigin = 'anonymous';
     }
+    img.decoding = 'async';
     img.onload = () => resolve(img);
-    img.onerror = (err) => reject(err);
+    img.onerror = async () => {
+      try {
+        const resp = await fetch(src, { mode: 'cors' });
+        const blob = await resp.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const img2 = new Image();
+        img2.onload = () => resolve(img2);
+        img2.onerror = reject;
+        img2.src = blobUrl;
+      } catch (e) {
+        imagePromiseCache.delete(src);
+        reject(e);
+      }
+    };
     img.src = src;
   });
+
+  imagePromiseCache.set(src, prom);
+  return prom;
 }
 
-// Ajusta a imagem ao limite máximo de textura da placa de vídeo (evita textura preta no WebGL)
-function criarTexturaSeguraGPU(imgElement) {
+function criarTexturaSeguraGPU(imgElement, cacheKey) {
+  if (cacheKey && textureMemoryCache.has(cacheKey)) {
+    return textureMemoryCache.get(cacheKey);
+  }
+
   const maxTexSize = (renderer && renderer.capabilities.maxTextureSize) ? Math.min(renderer.capabilities.maxTextureSize, 8192) : 4096;
   let w = imgElement.naturalWidth || imgElement.width;
   let h = imgElement.naturalHeight || imgElement.height;
@@ -1755,66 +1901,118 @@ function criarTexturaSeguraGPU(imgElement) {
   tex.magFilter = THREE.LinearFilter;
   tex.generateMipmaps = false;
   tex.needsUpdate = true;
+
+  if (cacheKey) {
+    textureMemoryCache.set(cacheKey, tex);
+  }
   return tex;
 }
 
-async function load360(ambienteObj, callback) {
-  const fontes = [];
-  if (ambienteObj.localData) fontes.push(ambienteObj.localData);
-  if (ambienteObj.url || ambienteObj.u) fontes.push(ambienteObj.url || ambienteObj.u);
-  if (ambienteObj.thumb || ambienteObj.t) fontes.push(ambienteObj.thumb || ambienteObj.t);
+function aplicarTexturaNaEsfera(tex) {
+  currentTexture = tex;
+  if (!sphere) {
+    sphere = new THREE.Mesh(
+      new THREE.SphereGeometry(100, 96, 64),
+      new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide })
+    );
+    sphere.scale.x = -1;
+    scene.add(sphere);
+  } else {
+    sphere.material.map = tex;
+    sphere.material.needsUpdate = true;
+  }
+}
 
-  let imgCarregada = null;
+// Pré-carrega silenciosamente todos os outros ambientes do projeto em segundo plano
+function precarregarAmbientesVizinhos(indiceAtual) {
+  if (!viewerState || !viewerState.images) return;
+  const total = viewerState.images.length;
+  if (total <= 1) return;
 
-  for (const src of fontes) {
-    if (!src) continue;
-    try {
-      imgCarregada = await carregarElementoImagem(src);
-      if (imgCarregada && (imgCarregada.naturalWidth > 0 || imgCarregada.width > 0)) {
-        break;
-      }
-    } catch (e) {
-      // Tenta via fetch blob caso o servidor tenha tido falha no header CORS direto
-      try {
-        const resp = await fetch(src, { mode: 'cors' });
-        const blob = await resp.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        imgCarregada = await carregarElementoImagem(blobUrl);
-        if (imgCarregada) break;
-      } catch (err2) {
-        console.warn("Tentando próxima fonte para o panorama...", err2);
-      }
-    }
+  // Prioriza ambientes conectados por hotspots na cena atual, depois os demais
+  const atual = viewerState.images[indiceAtual];
+  const hotspots = (atual && (atual.hotspots || atual.h)) || [];
+  const filaIndices = new Set();
+
+  hotspots.forEach(hs => {
+    const d = hs.destino !== undefined ? hs.destino : hs.d;
+    if (d !== undefined && d !== indiceAtual) filaIndices.add(d);
+  });
+  for (let i = 0; i < total; i++) {
+    if (i !== indiceAtual) filaIndices.add(i);
   }
 
-  if (!imgCarregada) {
-    toast("Não foi possível carregar a imagem deste ambiente.");
-    if (callback) callback(false);
+  // Dispara o download assíncrono sem travar a thread principal
+  Array.from(filaIndices).forEach((idx, ordem) => {
+    setTimeout(() => {
+      if (!viewerState || !viewerState.images[idx]) return;
+      const amb = viewerState.images[idx];
+      const hdSrc = amb.localData || amb.url || amb.u;
+      if (hdSrc && !textureMemoryCache.has(hdSrc)) {
+        carregarElementoImagem(hdSrc)
+          .then(img => criarTexturaSeguraGPU(img, hdSrc))
+          .catch(() => {});
+      }
+    }, 300 + ordem * 450);
+  });
+}
+
+// Carregamento Progressivo: mostra preview rápido imediatamente e refina para 4K sem travar
+async function load360Progressivo(ambienteObj, sceneIndex, onFirstFrameReady) {
+  const hdSrc = ambienteObj.localData || ambienteObj.url || ambienteObj.u;
+  const thumbSrc = ambienteObj.thumb || ambienteObj.t;
+  const hdBadge = document.getElementById('hdBadge');
+
+  // 1) Se a textura HD já está no cache de memória, aplica em 0ms!
+  if (hdSrc && textureMemoryCache.has(hdSrc)) {
+    aplicarTexturaNaEsfera(textureMemoryCache.get(hdSrc));
+    hdBadge.classList.remove('visible');
+    if (onFirstFrameReady) onFirstFrameReady(true);
+    precarregarAmbientesVizinhos(sceneIndex);
     return;
   }
 
-  if (currentTexture) {
-    currentTexture.dispose();
+  let jaExibiuCena = false;
+
+  // 2) Se existe uma miniatura leve diferente da HD, carrega ela primeiro para liberar a tela rápido
+  if (thumbSrc && thumbSrc !== hdSrc && !ambienteObj.localData) {
+    carregarElementoImagem(thumbSrc)
+      .then(thumbImg => {
+        if (!viewerState || viewerState.currentIndex !== sceneIndex) return;
+        if (!jaExibiuCena) {
+          const thumbTex = criarTexturaSeguraGPU(thumbImg, thumbSrc);
+          aplicarTexturaNaEsfera(thumbTex);
+          jaExibiuCena = true;
+          hdBadge.classList.add('visible');
+          if (onFirstFrameReady) onFirstFrameReady(true);
+        }
+      })
+      .catch(() => {});
   }
-  currentTexture = criarTexturaSeguraGPU(imgCarregada);
 
-  if (sphere) {
-    scene.remove(sphere);
-    sphere.geometry.dispose();
-    sphere.material.dispose();
+  // 3) Carrega a imagem HD principal em paralelo
+  try {
+    const hdImg = await carregarElementoImagem(hdSrc || thumbSrc);
+    if (!viewerState || viewerState.currentIndex !== sceneIndex) return;
+
+    const hdTex = criarTexturaSeguraGPU(hdImg, hdSrc || thumbSrc);
+    aplicarTexturaNaEsfera(hdTex);
+    hdBadge.classList.remove('visible');
+
+    if (!jaExibiuCena) {
+      jaExibiuCena = true;
+      if (onFirstFrameReady) onFirstFrameReady(true);
+    }
+
+    // Inicia pré-carregamento das próximas salas
+    precarregarAmbientesVizinhos(sceneIndex);
+  } catch (e) {
+    hdBadge.classList.remove('visible');
+    if (!jaExibiuCena) {
+      toast("Não foi possível carregar a imagem deste ambiente.");
+      if (onFirstFrameReady) onFirstFrameReady(false);
+    }
   }
-
-  sphere = new THREE.Mesh(
-    new THREE.SphereGeometry(100, 96, 64),
-    new THREE.MeshBasicMaterial({ map: currentTexture, side: THREE.BackSide })
-  );
-  sphere.scale.x = -1;
-  scene.add(sphere);
-
-  state.yaw = 0;
-  state.pitch = 0;
-  state.fov = 72;
-  if (callback) callback(true);
 }
 
 function toggleAutoRotate() {
@@ -1961,10 +2159,16 @@ window.mudarCena = function(index) {
   if (viewerState.loadedIndex === index) return;
   viewerState.currentIndex = index;
 
+  const ambiente = viewerState.images[index];
+  const hdSrc = ambiente.localData || ambiente.url || ambiente.u;
+  const jaEmCache = hdSrc && textureMemoryCache.has(hdSrc);
+
   const overlay = document.getElementById('fadeOverlay');
   const spinner = document.getElementById('fadeSpinner');
-  overlay.style.opacity = '1';
-  spinner.style.display = 'block';
+
+  // Se já estiver pré-carregado na memória, faz uma transição ultra-rápida sem spinner
+  overlay.style.opacity = jaEmCache ? '0.35' : '1';
+  spinner.style.display = jaEmCache ? 'none' : 'block';
   document.getElementById('hotspotsContainer').innerHTML = '';
 
   const botoes = document.getElementById('viewerNav').children;
@@ -1972,18 +2176,19 @@ window.mudarCena = function(index) {
     botoes[i].classList.toggle('active', i === index);
   }
 
-  setTimeout(() => {
-    const ambiente = viewerState.images[index];
-    document.getElementById('viewerName').textContent = viewerState.name;
-    document.getElementById('viewerIndex').textContent = String(index + 1).padStart(2, '0');
-    document.getElementById('viewerEnv').textContent = ambiente.label || ambiente.l;
+  document.getElementById('viewerName').textContent = viewerState.name;
+  document.getElementById('viewerIndex').textContent = String(index + 1).padStart(2, '0');
+  document.getElementById('viewerEnv').textContent = ambiente.label || ambiente.l;
 
-    load360(ambiente, () => {
-      viewerState.loadedIndex = index;
-      overlay.style.opacity = '0';
-      setTimeout(() => spinner.style.display = 'none', 400);
-    });
-  }, 260);
+  state.yaw = 0;
+  state.pitch = 0;
+  state.fov = 72;
+
+  load360Progressivo(ambiente, index, () => {
+    viewerState.loadedIndex = index;
+    overlay.style.opacity = '0';
+    spinner.style.display = 'none';
+  });
 };
 
 function openViewer(id, startScene = 0) {
@@ -2020,6 +2225,7 @@ function montarMenuNavegacao() {
 
 function closeViewer() {
   document.getElementById('viewer').classList.remove('open');
+  document.getElementById('hdBadge').classList.remove('visible');
   viewerState = null;
 }
 
@@ -2068,20 +2274,18 @@ window.addEventListener('keydown', e => {
   }
 });
 
-// Inicialização: Detecta Modo Cliente (?t=...) ou Painel do Estúdio
+// Inicialização: Detecta Modo Cliente (?z=... ou ?t=...) ou Painel do Estúdio
 (async () => {
   const urlParams = new URLSearchParams(window.location.search);
-  const tourData = urlParams.get('t');
-  const clientName = urlParams.get('p') || 'EKARCHVIZ 360°';
+  const clientTour = descompactarTourDaUrl(urlParams);
 
-  if (tourData) {
+  if (clientTour && clientTour.images && clientTour.images.length > 0) {
     isClientMode = true;
     document.getElementById('mainApp').style.display = 'none';
     document.getElementById('btnAddHotspot').style.display = 'none';
     document.getElementById('btnCloseViewer').style.display = 'none';
 
-    const imagensExtraidas = decodeData(tourData);
-    viewerState = { name: clientName, images: imagensExtraidas, currentIndex: 0, loadedIndex: -1 };
+    viewerState = { name: clientTour.name, images: clientTour.images, currentIndex: 0, loadedIndex: -1 };
 
     document.getElementById('viewer').classList.add('open');
     initViewer();
