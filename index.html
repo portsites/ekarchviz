@@ -150,6 +150,11 @@
     border-color: var(--ivory);
     font-weight: 700;
   }
+  .nav-pill:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+  }
 
   .brand-center {
     display: flex;
@@ -584,6 +589,8 @@
     display: flex;
     flex-direction: column;
     gap: 14px;
+    flex: 1;
+    justify-content: space-between;
   }
   .arch-title-row {
     display: flex;
@@ -614,14 +621,17 @@
     line-height: 1.6;
   }
   .arch-actions {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr 42px;
     gap: 8px;
     padding-top: 4px;
   }
+  .arch-actions .pill-btn.solid {
+    grid-column: 1 / -1;
+  }
   .pill-btn {
-    flex: 1;
     min-height: 42px;
-    padding: 10px 14px;
+    padding: 10px 12px;
     border-radius: var(--radius-pill);
     border: 1px solid var(--border);
     font-size: 10.5px;
@@ -633,6 +643,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 6px;
   }
   .pill-btn:hover {
     border-color: var(--ivory);
@@ -648,7 +659,8 @@
     border-color: var(--champagne);
   }
   .pill-btn.del {
-    flex: 0 0 42px;
+    width: 42px;
+    padding: 0;
     color: var(--ivory-dim);
   }
   .pill-btn.del:hover {
@@ -742,7 +754,6 @@
     letter-spacing: 0.14em;
     color: var(--ivory-dim);
   }
-  /* Font-size 16px no mobile evita o auto-zoom forçado do iOS Safari ao focar no input */
   .field input, .field select {
     width: 100%;
     background: rgba(255, 255, 255, 0.04);
@@ -759,7 +770,7 @@
     border: 1px dashed var(--border-strong);
     background: rgba(255, 255, 255, 0.02);
     border-radius: 16px;
-    padding: 26px 16px;
+    padding: 24px 16px;
     text-align: center;
     transition: 0.25s;
   }
@@ -769,7 +780,7 @@
   .drop-zone input { display: none; }
 
   /* ARRASTAR E SOLTAR + BOTÕES MOBILE DE REORDENAR */
-  .file-list { margin-top: 16px; display: grid; gap: 10px; }
+  .file-list { margin-top: 14px; display: grid; gap: 10px; }
   .file-item {
     display: flex;
     gap: 10px;
@@ -784,20 +795,11 @@
     opacity: 0.5;
     background: rgba(243, 237, 226, 0.1);
   }
-  .drag-handle {
-    cursor: grab;
-    color: var(--ivory-muted);
-    padding: 0 4px;
-    font-size: 16px;
-    line-height: 1;
-    user-select: none;
-  }
-  .drag-handle:active { cursor: grabbing; }
 
   .order-btns {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 3px;
   }
   .order-btn {
     width: 24px;
@@ -820,6 +822,21 @@
     padding: 9px 10px;
     border-radius: 8px;
     font-size: 14px;
+  }
+  .file-status-tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    color: var(--ivory-dim);
+    flex-shrink: 0;
+  }
+  .file-status-tag.new {
+    border-color: var(--champagne);
+    color: var(--champagne);
   }
 
   .modal-foot {
@@ -993,7 +1010,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 12px; /* Área de toque confortável para dedos no celular */
+    padding: 12px;
     z-index: 10;
   }
   .hotspot-point:hover { z-index: 50; }
@@ -1202,7 +1219,6 @@
   }
 
   @media (max-width: 640px) {
-    /* Ajustes finos no Visualizador 360 para telas de Celular */
     .viewer-header {
       top: calc(12px + var(--safe-top));
       left: 12px;
@@ -1249,7 +1265,6 @@
       top: calc(114px + var(--safe-top));
       right: 12px;
     }
-    /* Modal estilo Bottom-Sheet em celulares */
     .modal {
       padding: 0;
       align-items: flex-end;
@@ -1260,6 +1275,7 @@
       border-radius: 22px 22px 0 0;
       border-bottom: none;
     }
+    .file-status-tag { display: none; }
   }
 </style>
 </head>
@@ -1371,18 +1387,18 @@
   <section class="catalog-section" id="acervoSection">
     <div class="section-bar">
       <h2>Acervo <em>selecionado</em></h2>
-      <p>TOQUE EM UM PROJETO PARA EXPLORAR OU ADICIONAR CONEXÕES 3D</p>
+      <p>EXPLORE, EDITE AMBIENTES OU PARTILHE COM SEU CLIENTE</p>
     </div>
     <div id="projects" class="projects-grid"></div>
   </section>
 
 </div>
 
-<!-- MODAL: CRIAR NOVO TOUR -->
+<!-- MODAL: CRIAR / EDITAR TOUR -->
 <div id="modal" class="modal">
   <div class="modal-card">
     <div class="modal-head">
-      <strong>Publicar Novo Tour 360°</strong>
+      <strong id="modalTitle">Publicar Novo Tour 360°</strong>
       <button class="close-btn" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
@@ -1391,9 +1407,9 @@
         <input id="projectName" type="text" maxlength="80" placeholder="Ex.: Residência EKARCH — Pavimento Térreo" />
       </div>
       <div id="drop" class="drop-zone">
-        <strong>Selecione ou arraste os renders 360°</strong>
+        <strong id="dropTitle">Selecione ou arraste os renders 360°</strong>
         <p>Compressão inteligente WebP/JPEG para celular e computador</p>
-        <label class="nav-pill active" for="fileInput" style="display:inline-block; cursor:pointer;">Escolher Imagens</label>
+        <label class="nav-pill active" for="fileInput" style="display:inline-block; cursor:pointer;">Adicionar Imagens</label>
         <input id="fileInput" type="file" accept="image/*" multiple />
       </div>
       
@@ -1497,8 +1513,8 @@
         <strong>EKARCHVIZ — Spatial 360° Engine (Desktop & Mobile)</strong> combina design editorial internacional com navegação tridimensional ultra-rápida.
       </p>
       <p>
+        • <strong>Edição Completa:</strong> Clique em <b>Editar</b> em qualquer projeto para renomear, reordenar ambientes, adicionar novas fotos ou remover salas preservando as conexões 3D.<br>
         • <strong>Gestos Mobile & Sensor Giroscópio:</strong> No celular, deslize com 1 dedo para girar, faça pinça com 2 dedos para dar zoom ou ative o <b>Sensor</b> para mover o celular no espaço.<br>
-        • <strong>Bolinhas 3D Touch:</strong> Toque para mudar de ambiente ou segure pressionado por 0.6s para remover uma conexão.<br>
         • <strong>Links Ultra-Curtos:</strong> Ao tocar em <b>Partilhar</b>, o sistema gera um link compacto que abre direto na tela do cliente.
       </p>
     </div>
@@ -1523,10 +1539,10 @@ const IS_MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini
 let db;
 let projectsCache = [];
 let selectedFiles = [];
+let editingProjectId = null;
 let viewerState = null;
 let isClientMode = false;
 
-// Cache em memória de texturas (limitado no mobile para não estourar RAM do iOS)
 const MAX_CACHED_TEXTURES = IS_MOBILE ? 4 : 12;
 const textureMemoryCache = new Map();
 const imagePromiseCache = new Map();
@@ -1612,9 +1628,16 @@ function prepararImagemParaUpload(file, maxWidth = 4096) {
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, w, h);
 
-      const dataUrl = canvas.toDataURL('image/webp', 0.86);
-      const mimeType = dataUrl.startsWith('data:image/webp') ? 'image/webp' : 'image/jpeg';
-      const ext = mimeType === 'image/webp' ? 'webp' : 'jpg';
+      let dataUrl = canvas.toDataURL('image/webp', 0.86);
+      let mimeType = 'image/webp';
+      let ext = 'webp';
+
+      // Safari antigo/iOS pode retornar PNG ao pedir WebP; garante JPEG leve nesses casos
+      if (!dataUrl.startsWith('data:image/webp')) {
+        dataUrl = canvas.toDataURL('image/jpeg', 0.86);
+        mimeType = 'image/jpeg';
+        ext = 'jpg';
+      }
 
       canvas.toBlob((blob) => {
         URL.revokeObjectURL(objectUrl);
@@ -1713,16 +1736,19 @@ async function renderProjects() {
         <div class="card-scene-dots">${dotsHtml}</div>
       </div>
       <div class="arch-body">
-        <div class="arch-title-row">
-          <div class="arch-title" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</div>
-          <div class="arch-date">${new Date(p.createdAt).toLocaleDateString('pt-BR')}</div>
-        </div>
-        <div class="arch-specs">
-          Ambientes: ${escapeHtml(p.images.map(i => i.label).join(' • '))}<br>
-          Bolinhas 3D ativas: ${totalHotspots} ${totalHotspots === 1 ? 'conexão' : 'conexões'}
+        <div>
+          <div class="arch-title-row">
+            <div class="arch-title" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</div>
+            <div class="arch-date">${new Date(p.createdAt).toLocaleDateString('pt-BR')}</div>
+          </div>
+          <div class="arch-specs" style="margin-top: 12px;">
+            Ambientes: ${escapeHtml(p.images.map(i => i.label).join(' • '))}<br>
+            Bolinhas 3D ativas: ${totalHotspots} ${totalHotspots === 1 ? 'conexão' : 'conexões'}
+          </div>
         </div>
         <div class="arch-actions">
           <button class="pill-btn solid" onclick="openViewer('${p.id}', 0)">Explorar 360° ⟶</button>
+          <button class="pill-btn" onclick="openEdit('${p.id}')">Editar</button>
           <button class="pill-btn" id="shareBtn-${p.id}" onclick="shareProject('${p.id}')">Partilhar</button>
           <button class="pill-btn del" onclick="removeProject('${p.id}')" title="Excluir Projeto">✕</button>
         </div>
@@ -1731,12 +1757,53 @@ async function renderProjects() {
   }).join('');
 }
 
-// ==== UPLOAD, DRAG & DROP E ORDENAÇÃO MOBILE ====
+// ==== CRIAÇÃO E EDIÇÃO DE PROJETOS ====
 function openAdd() {
+  editingProjectId = null;
+  selectedFiles = [];
+  document.getElementById('modalTitle').textContent = 'Publicar Novo Tour 360°';
+  document.getElementById('dropTitle').textContent = 'Selecione ou arraste os renders 360°';
+  document.getElementById('saveBtn').textContent = 'Publicar na Nuvem ⟶';
+  document.getElementById('projectName').value = '';
+  document.getElementById('fileInput').value = '';
+  renderFileList();
   document.getElementById('modal').classList.add('open');
   if (!IS_MOBILE) setTimeout(() => document.getElementById('projectName').focus(), 50);
 }
+
+function openEdit(id) {
+  const p = projectsCache.find(x => x.id === id);
+  if (!p) return;
+
+  editingProjectId = p.id;
+  document.getElementById('modalTitle').textContent = 'Editar Projeto 360°';
+  document.getElementById('dropTitle').textContent = 'Adicionar novos renders 360° ao projeto';
+  document.getElementById('saveBtn').textContent = 'Salvar Alterações ⟶';
+  document.getElementById('projectName').value = p.name || '';
+  document.getElementById('fileInput').value = '';
+
+  selectedFiles = (p.images || []).map((img, idx) => ({
+    isExisting: true,
+    origIndex: idx,
+    label: img.label || `Ambiente ${idx + 1}`,
+    preview: img.localData || img.thumb || img.url,
+    url: img.url,
+    thumb: img.thumb,
+    localData: img.localData || null,
+    hotspots: Array.isArray(img.hotspots) ? img.hotspots.map(h => ({ ...h })) : []
+  }));
+
+  renderFileList();
+  document.getElementById('modal').classList.add('open');
+}
+
 function closeModal() {
+  selectedFiles.forEach(item => {
+    if (!item.isExisting && item.preview && item.preview.startsWith('blob:')) {
+      URL.revokeObjectURL(item.preview);
+    }
+  });
+  editingProjectId = null;
   document.getElementById('modal').classList.remove('open');
   document.getElementById('projectName').value = '';
   document.getElementById('fileInput').value = '';
@@ -1744,7 +1811,10 @@ function closeModal() {
   renderFileList();
 }
 
-document.getElementById('fileInput').addEventListener('change', e => adicionarArquivos(e.target.files));
+document.getElementById('fileInput').addEventListener('change', e => {
+  adicionarArquivos(e.target.files);
+  e.target.value = '';
+});
 const drop = document.getElementById('drop');
 ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('drag'); }));
 ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('drag'); }));
@@ -1754,7 +1824,12 @@ function adicionarArquivos(files) {
   for (let f of files) {
     if (f.type.startsWith('image/') || /\.(jpg|jpeg|png|webp|avif)$/i.test(f.name)) {
       const cleanName = f.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
-      selectedFiles.push({ file: f, label: cleanName, preview: URL.createObjectURL(f) });
+      selectedFiles.push({
+        isExisting: false,
+        file: f,
+        label: cleanName,
+        preview: URL.createObjectURL(f)
+      });
     }
   }
   renderFileList();
@@ -1816,12 +1891,47 @@ function renderFileList() {
         <button type="button" class="order-btn" onclick="moverArquivo(${index}, 1)" title="Descer">↓</button>
       </div>
       <img src="${item.preview}" alt="Preview">
-      <input type="text" placeholder="Nome do ambiente (Ex.: Living...)" value="${escapeHtml(item.label)}" oninput="selectedFiles[${index}].label = this.value">
+      <input type="text" placeholder="Nome do ambiente (Ex.: Living...)" value="${escapeHtml(item.label)}" oninput="selectedFiles[${index}].label = this.value" onfocus="this.closest('.file-item').draggable=false" onblur="this.closest('.file-item').draggable=true">
+      <span class="file-status-tag ${item.isExisting ? '' : 'new'}">${item.isExisting ? 'Salvo' : 'Novo'}</span>
       <button type="button" class="close-btn" onclick="removerArquivo(${index})" title="Remover">&times;</button>
     </div>
   `).join('');
 }
-window.removerArquivo = function(index) { selectedFiles.splice(index, 1); renderFileList(); };
+
+window.removerArquivo = function(index) {
+  const removed = selectedFiles.splice(index, 1)[0];
+  if (removed && !removed.isExisting && removed.preview && removed.preview.startsWith('blob:')) {
+    URL.revokeObjectURL(removed.preview);
+  }
+  renderFileList();
+};
+
+async function uploadParaImgBB(file, indice, totalNovos, btn) {
+  btn.textContent = `OTIMIZANDO ${indice} / ${totalNovos}...`;
+  const { blob, dataUrl, ext } = await prepararImagemParaUpload(file, 4096);
+
+  btn.textContent = `ENVIANDO ${indice} / ${totalNovos}...`;
+  const formData = new FormData();
+  formData.append("image", blob, `p${indice}.${ext}`);
+
+  let remoteUrl = null;
+  let remoteThumb = null;
+
+  try {
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
+    const json = await res.json();
+    if (json && json.success && json.data) {
+      remoteUrl = (json.data.image && json.data.image.url) ? json.data.image.url : json.data.url;
+      remoteThumb = (json.data.medium && json.data.medium.url)
+        ? json.data.medium.url
+        : ((json.data.thumb && json.data.thumb.url) ? json.data.thumb.url : remoteUrl);
+    }
+  } catch (e) {
+    console.warn("Aviso no upload ImgBB:", e);
+  }
+
+  return { remoteUrl, remoteThumb, dataUrl };
+}
 
 async function saveProject() {
   const name = document.getElementById('projectName').value.trim();
@@ -1831,56 +1941,92 @@ async function saveProject() {
   const btn = document.getElementById('saveBtn');
   const originalText = btn.textContent;
   btn.disabled = true;
-  let imagensSalvas = [];
 
-  for (let i = 0; i < selectedFiles.length; i++) {
-    let f = selectedFiles[i];
-    btn.textContent = `OTIMIZANDO ${i + 1} / ${selectedFiles.length}...`;
+  try {
+    const totalNovos = selectedFiles.filter(f => !f.isExisting).length;
+    let contadorNovos = 0;
 
-    const { blob, dataUrl, ext } = await prepararImagemParaUpload(f.file, 4096);
-
-    btn.textContent = `ENVIANDO ${i + 1} / ${selectedFiles.length}...`;
-    const formData = new FormData();
-    formData.append("image", blob, `p${i + 1}.${ext}`);
-
-    let remoteUrl = null;
-    let remoteThumb = null;
-
-    try {
-      const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
-      const json = await res.json();
-      if (json && json.success && json.data) {
-        remoteUrl = (json.data.image && json.data.image.url) ? json.data.image.url : json.data.url;
-        remoteThumb = (json.data.medium && json.data.medium.url)
-          ? json.data.medium.url
-          : ((json.data.thumb && json.data.thumb.url) ? json.data.thumb.url : remoteUrl);
+    // Mapeia índices antigos -> novos para manter todas as bolinhas 3D apontando para a sala certa após reordenar/excluir
+    const indexMap = new Map();
+    selectedFiles.forEach((item, newIdx) => {
+      if (item.isExisting && item.origIndex !== undefined) {
+        indexMap.set(item.origIndex, newIdx);
       }
-    } catch (e) {
-      console.warn("Aviso no upload ImgBB:", e);
-    }
-
-    if (!remoteUrl && !dataUrl) {
-      toast(`Falha ao processar a imagem ${i + 1}.`);
-      btn.textContent = originalText;
-      btn.disabled = false;
-      return;
-    }
-
-    imagensSalvas.push({
-      label: f.label.trim() || `Ambiente ${i + 1}`,
-      url: remoteUrl || dataUrl,
-      thumb: remoteThumb || remoteUrl || dataUrl,
-      localData: dataUrl,
-      hotspots: []
     });
-  }
 
-  await put({ id: crypto.randomUUID(), name: name, images: imagensSalvas, createdAt: Date.now() });
-  closeModal();
-  await renderProjects();
-  toast('Tour publicado com sucesso!');
-  btn.textContent = originalText;
-  btn.disabled = false;
+    const imagensSalvas = [];
+
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const f = selectedFiles[i];
+
+      if (f.isExisting) {
+        const hotspotsRemapeados = (f.hotspots || [])
+          .filter(hs => {
+            const d = hs.destino !== undefined ? hs.destino : hs.d;
+            return indexMap.has(d);
+          })
+          .map(hs => {
+            const d = hs.destino !== undefined ? hs.destino : hs.d;
+            return {
+              yaw: hs.yaw !== undefined ? hs.yaw : hs.y,
+              pitch: hs.pitch !== undefined ? hs.pitch : hs.p,
+              destino: indexMap.get(d)
+            };
+          });
+
+        imagensSalvas.push({
+          label: f.label.trim() || `Ambiente ${i + 1}`,
+          url: f.url,
+          thumb: f.thumb || f.url,
+          localData: f.localData || null,
+          hotspots: hotspotsRemapeados
+        });
+      } else {
+        contadorNovos++;
+        const { remoteUrl, remoteThumb, dataUrl } = await uploadParaImgBB(f.file, contadorNovos, totalNovos, btn);
+
+        if (!remoteUrl && !dataUrl) {
+          toast(`Falha ao processar a nova imagem ${contadorNovos}.`);
+          return;
+        }
+
+        imagensSalvas.push({
+          label: f.label.trim() || `Ambiente ${i + 1}`,
+          url: remoteUrl || dataUrl,
+          thumb: remoteThumb || remoteUrl || dataUrl,
+          localData: dataUrl,
+          hotspots: []
+        });
+      }
+    }
+
+    if (editingProjectId) {
+      const original = projectsCache.find(x => x.id === editingProjectId);
+      await put({
+        id: editingProjectId,
+        name: name,
+        images: imagensSalvas,
+        createdAt: original ? original.createdAt : Date.now(),
+        updatedAt: Date.now()
+      });
+      closeModal();
+      await renderProjects();
+      toast('Alterações salvas com sucesso!');
+    } else {
+      await put({
+        id: crypto.randomUUID(),
+        name: name,
+        images: imagensSalvas,
+        createdAt: Date.now()
+      });
+      closeModal();
+      await renderProjects();
+      toast('Tour publicado com sucesso!');
+    }
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
 }
 
 async function removeProject(id) {
@@ -2028,12 +2174,10 @@ function initViewer() {
   if (!camera) camera = new THREE.PerspectiveCamera(state.fov, innerWidth / innerHeight, 0.1, 1100);
   camera.position.set(0, 0, 0.01);
 
-  // Mostra botão de Sensor Giroscópio em celulares/tablets
   if (IS_MOBILE && ('DeviceOrientationEvent' in window)) {
     document.getElementById('btnGyro').style.display = 'inline-flex';
   }
 
-  // Oculta botão Tela Cheia no iPhone (iOS Safari não suporta Fullscreen API fora de vídeo)
   if (!document.documentElement.requestFullscreen && !document.documentElement.webkitRequestFullscreen) {
     document.getElementById('btnFullscreen').style.display = 'none';
   }
@@ -2081,7 +2225,6 @@ function animate() {
   renderHotspotsNaTela();
 }
 
-// Sensor Giroscópio para Celulares (iOS 13+ e Android)
 function onDeviceOrientation(e) {
   if (!state.gyroEnabled || state.drag || e.alpha === null || e.beta === null) return;
   if (state.gyroLastAlpha !== null) {
@@ -2163,7 +2306,6 @@ function criarTexturaSeguraGPU(imgElement, cacheKey) {
     return textureMemoryCache.get(cacheKey);
   }
 
-  // Em celulares, limita a textura a 4096px para evitar crash de memória WebGL no iOS
   const capLimit = IS_MOBILE ? 4096 : 8192;
   const maxTexSize = (renderer && renderer.capabilities.maxTextureSize) ? Math.min(renderer.capabilities.maxTextureSize, capLimit) : 4096;
   let w = imgElement.naturalWidth || imgElement.width;
@@ -2226,7 +2368,6 @@ function precarregarAmbientesVizinhos(indiceAtual) {
     if (i !== indiceAtual) filaIndices.add(i);
   }
 
-  // No celular pré-carrega os 2 ambientes mais próximos para economizar franquia 4G/5G e RAM
   const indicesParaBaixar = Array.from(filaIndices).slice(0, IS_MOBILE ? 2 : 6);
 
   indicesParaBaixar.forEach((idx, ordem) => {
@@ -2346,7 +2487,6 @@ function renderHotspotsNaTela() {
         <div class="hotspot-caption">${escapeHtml(destName)}</div>
       `;
 
-      // Suporte a Long-Press (Segurar 0.6s no celular) para excluir bolinha no modo editor
       let longPressTimer = null;
       let longPressTriggered = false;
 
@@ -2560,7 +2700,6 @@ canvas.addEventListener('pointerdown', e => {
     state.vYaw = 0;
     state.vPitch = 0;
   } else if (activePointers.size === 2) {
-    // Inicia gesto de pinça com 2 dedos no celular
     state.drag = false;
     initialPinchDist = getPinchDistance();
     initialPinchFov = state.fov;
